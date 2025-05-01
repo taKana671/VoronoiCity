@@ -74,118 +74,31 @@ class Color(Enum):
         return LColor(*c.value, 1)
 
 
-class CircularTower(NodePath):
+class Building(NodePath):
 
-    def __init__(self, name, radius, height, inner_radius=0, slice_deg=0):
-        super().__init__(BulletRigidBodyNode(f'circular_{name}'))
+    def __init__(self, name, pos, hpr):
+        super().__init__(BulletRigidBodyNode(f'building_{name}'))
         self.set_tag('category', 'object')
-
-        self.model = Cylinder(
-            radius=radius,
-            inner_radius=inner_radius,
-            height=height,
-            segs_a=int(height),
-            ring_slice_deg=slice_deg
-        ).create()
-
-        self.model.reparent_to(self)
-        self.set_color(Color.random_choice())
-
-        
-        # end, tip = self.model.get_tight_bounds()
-        # self.node().add_shape(BulletCylinderShape((tip - end) / 2))
-        
-        shape = BulletConvexHullShape()
-        shape.add_geom(self.model.node().get_geom(0))
-        self.node().add_shape(shape)
-        self.node().set_mass(0)
-        self.set_collide_mask(BitMask32(2))
-
-
-class EllipticalTower(NodePath):
-
-    def __init__(self, name, major_axis, minor_axis, height, thickness=0, slice_deg=0):
-        super().__init__(BulletRigidBodyNode(f'ellipse_{name}'))
-        self.set_tag('category', 'object')
-
-        self.model = EllipticalPrism(
-            major_axis=major_axis,
-            minor_axis=minor_axis,
-            thickness=thickness,
-            height=height,
-            segs_a=int(height),
-            ring_slice_deg=slice_deg
-        ).create()
-
-        # self.set_pos_hpr(pos, hpr)
-        self.set_color(Color.random_choice())
-        self.model.reparent_to(self)
-
-        shape = BulletConvexHullShape()
-        shape.add_geom(self.model.node().get_geom(0))
-        self.node().add_shape(shape)
         self.node().set_mass(0)
         self.set_collide_mask(BitMask32.bit(1))
-
-
-class CapsuleTower(NodePath):
-
-    def __init__(self, name, width, depth, height, thickness=0, rounded_left=True, rounded_right=True):
-        super().__init__(BulletRigidBodyNode(f'capsule_{name}'))
-        self.set_tag('category', 'object')
-
-        self.model = CapsulePrism(
-            width=width,
-            depth=depth,
-            height=height,
-            segs_w=int(width),
-            segs_d=int(depth),
-            segs_z=int(height),
-            thickness=thickness,
-            rounded_left=rounded_left,
-            rounded_right=rounded_right
-        ).create()
-
-        self.model.reparent_to(self)
+        self.set_pos_hpr(pos, hpr)
         self.set_color(Color.random_choice())
 
+    def make_convex_shape(self, model):
         shape = BulletConvexHullShape()
-        shape.add_geom(self.model.node().get_geom(0))
+        shape.add_geom(model.node().get_geom(0))
+        return shape
+
+    def build(self, model):
+        shape = self.make_convex_shape(model)
         self.node().add_shape(shape)
-        self.node().set_mass(0)
-        self.set_collide_mask(BitMask32.bit(1))
+        model.reparent_to(self)
 
-
-class RoundedRectTower(NodePath):
-
-    def __init__(self, name, width, depth, height, corner_radius, thickness=0,
-                 rounded_f_left=True, rounded_f_right=True, rounded_b_left=True, rounded_b_right=True):
-        super().__init__(BulletRigidBodyNode(f'round_rect_{name}'))
-        self.set_tag('category', 'object')
-
-        self.model = RoundedCornerBox(
-            width=width,
-            depth=depth,
-            height=height,
-            segs_w=int(width),
-            segs_d=int(depth),
-            segs_z=int(height),
-            corner_radius=corner_radius,
-            thickness=thickness,
-            rounded_f_left=rounded_f_left,
-            rounded_f_right=rounded_f_right,
-            rounded_b_left=rounded_b_left,
-            rounded_b_right=rounded_b_right
-        ).create()
-
-        self.model.reparent_to(self)
-        self.set_color(Color.random_choice())
-
-        shape = BulletConvexHullShape()
-        shape.add_geom(self.model.node().get_geom(0))
-        self.node().add_shape(shape)
-        self.node().set_mass(0)
-        self.set_collide_mask(BitMask32.bit(1))
+    def assemble(self, model, pos, hpr):
+        shape = self.make_convex_shape(model)
+        self.node().add_shape(shape, TransformState.make_pos_hpr(pos, hpr))
+        model.set_pos_hpr(pos, hpr)
+        model.reparent_to(self)
 
 
 class CapsuleDome(NodePath):
@@ -241,13 +154,13 @@ class SphereDome(NodePath):
 
 class PineTree(NodePath):
 
-    def __init__(self, name, scale=1.0):
+    def __init__(self, model, name, scale=1.5):
         super().__init__(BulletRigidBodyNode(f'tree_{name}'))
-        model = base.loader.load_model('models/pinetree/tree2.bam')
-        model.set_transform(TransformState.make_pos(Vec3(-0.25, -0.15, 0)))
-        model.reparent_to(self)
+        tree = model.copy_to(self)
+        tree.set_transform(TransformState.make_pos(Vec3(-0.25, -0.15, 0)))
+        tree.reparent_to(self)
 
-        end, tip = model.get_tight_bounds()
+        end, tip = tree.get_tight_bounds()
         height = (tip - end).z
         shape = BulletCylinderShape(0.3, height, ZUp)
         self.node().add_shape(shape)
@@ -261,50 +174,75 @@ class City:
 
     def __init_subclass__(cls):
         super().__init_subclass__()
-
         if 'build' not in cls.__dict__:
             raise NotImplementedError('Subclasses must implement build method')
 
         City.areas.append(cls)
 
+    def attach(self, model):
+        model.reparent_to(base.scene.city_root)
+        base.world.attach(model.node())
+
 
 class Area1(City):
 
     def build(self):
-        tower = EllipticalTower('area1', major_axis=8, minor_axis=4, height=30)
-        tower.set_pos_hpr(Point3(-108, 120, 0), Vec3(-56, 0, 0))
-        tower.reparent_to(base.scene.city_root)
-        base.world.attach(tower.node())
+        building = Building('area1_0', Point3(-108, 120, 0), Vec3(-56, 0, 0))
+        model = EllipticalPrism(major_axis=8, minor_axis=4, height=30, segs_a=15).create()
+        building.build(model)
+        self.attach(building)
 
-        tower = CircularTower('area1', 3, 20)
-        tower.set_pos(Point3(-98, 122, 0))
-        tower.reparent_to(base.scene.city_root)
-        base.world.attach(tower.node())
+        building = Building('area1_1', Point3(-98, 122, 0), Vec3(0, 0, 0))
+        model = Cylinder(radius=3, height=20, segs_a=20).create()
+        building.build(model)
+        self.attach(building)
 
-        tower = RoundedRectTower('area1', 8, 8, 25, 2, rounded_b_left=False, rounded_f_right=False)
-        tower.set_pos_hpr(Point3(-121, 76, 12.5), Vec3(36, 0, 0))
-        tower.reparent_to(base.scene.city_root)
-        base.world.attach(tower.node())
+        building = Building('area1_2', Point3(-54, 108, 0), Vec3(0, 0, 0))
+        for r, h, z in [[15, 20, 0], [10, 5, 20]]:
+            model = Cylinder(radius=r, height=h, segs_a=h).create()
+            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
 
-        tower = CapsuleTower('area1', 10, 5, 15)
-        tower.set_pos_hpr(Point3(-121, 93, 7.5), Vec3(-64, 0, 0))
-        tower.reparent_to(base.scene.city_root)
-        base.world.attach(tower.node())
+        self.attach(building)
 
-        tree = PineTree('area1_0', 1.5)
-        tree.set_pos(Point3(-126, 121, 0))
-        tree.reparent_to(base.scene.city_root)
-        base.world.attach(tree.node())
+        building = Building('area1_3', Point3(-121, 93, 7.5), Vec3(-64, 0, 0))
+        model = CapsulePrism(
+            width=10, depth=5, height=15, segs_w=5, segs_d=2, segs_z=15).create()
+        building.build(model)
+        self.attach(building)
 
-        tree = PineTree('area1_1', 1.5)
-        tree.set_pos(Point3(-124, 125, 0))
-        tree.reparent_to(base.scene.city_root)
-        base.world.attach(tree.node())
+        rect = [
+            [Point3(-121, 76, 12.5), Vec3(36, 0, 0), 8, 8, 25, 2],
+            [Point3(-77, 85, 6), Vec3(-32, 0, 0), 40, 20, 12, 2],
+            [Point3(-77, 116, 10), Vec3(-32, 0, 0), 10, 10, 20, 1]
+        ]
+        for pos, hpr, w, d, h, cr in rect:
+            building = Building('area1', pos, hpr)
+            model = RoundedCornerBox(
+                width=w, depth=d, height=h, corner_radius=cr, segs_w=w, segs_d=d, segs_z=h).create()
+            building.build(model)
+            self.attach(building)
 
-        tree = PineTree('area1_1', 1.5)
-        tree.set_pos(Point3(-113, 82, 0))
-        tree.reparent_to(base.scene.city_root)
-        base.world.attach(tree.node())
+
+class AreaTree(City):
+
+    def __init__(self):
+        self.model = base.loader.load_model('models/pinetree/tree2.bam')
+
+    def build(self):
+        tree_pos = [
+            (-126, 121, 0),
+            (-124, 125, 0),
+            (-113, 82, 0),
+        ]
+
+        for i, pos in enumerate(tree_pos):
+            tree = PineTree(self.model, i)
+            tree.set_pos(pos)
+            self.attach(tree)
+
+
+
+
 
 
 
