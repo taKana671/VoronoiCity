@@ -6,14 +6,13 @@ import numpy as np
 from panda3d.bullet import BulletWorld, BulletDebugNode
 from direct.showbase.ShowBase import ShowBase
 from direct.showbase.ShowBaseGlobal import globalClock
-from panda3d.core import Point3, Vec3, Vec2
+from panda3d.core import Point3, Vec3, Vec2, BitMask32
 from panda3d.core import NodePath
 from panda3d.core import TransparencyAttrib, AntialiasAttrib
 
 from panda3d.core import load_prc_file_data
 
 from shapes.src.box import Box
-from shapes.src import IrregularPrism
 from scene import Scene
 
 
@@ -43,6 +42,7 @@ class Marbles(ShowBase):
         self.world.set_debug_node(self.debug.node())
 
         self.scene = Scene()
+        self.scene.create_city()
 
         self.camera_root = NodePath('camera_root')
         self.camera_root.reparent_to(self.render)
@@ -51,42 +51,27 @@ class Marbles(ShowBase):
         self.camera.look_at(Point3(0, 0, 0))
         self.camera.reparent_to(self.camera_root)
 
+        self.clicked = False
         self.dragging = False
         self.before_mouse_pos = None
-
-        # self.model = Box(2, 2, 2).create()
-        # self.model.reparent_to(self.render)
-        # pts = [
-        #     [130, 215],
-        #     [140, 255],
-        #     [189, 255],
-        #     [191, 225],
-        #     [153, 206],
-        # ]
-
-        # pts = [
-        #     [64, 255],
-        #     [57, 244],
-        #     [14, 255],
-        # ]
-        # pts = [
-        #     [255, 64],
-        #     [244, 57],
-        #     [255, 14],
-        # ]
-
-        # tmp = [Vec2(*pt) for pt in pts]
-        # center = self.calculate_center(tmp)
-        # self.model = IrregularPrism([pt - center for pt in tmp], height=10).create()
-        # self.model.reparent_to(self.render)
-        # tex = self.loader.load_texture('brick.jpg')
-        # self.model.set_texture(tex)
-        # self.create_3d_regions()
+        self.target = None
 
         self.accept('escape', sys.exit)
         self.accept('mouse1', self.mouse_click)
         self.accept('mouse1-up', self.mouse_release)
         self.accept('d', self.toggle_debug)
+        self.accept('i', self.get_target_info)
+        self.accept('r', self.release_target)
+
+        self.accept('x', self.positioning, ['x', 1])
+        self.accept('shift-x', self.positioning, ['x', -1])
+        self.accept('y', self.positioning, ['y', 1])
+        self.accept('shift-y', self.positioning, ['y', -1])
+        self.accept('z', self.positioning, ['z', 1])
+        self.accept('shift-z', self.positioning, ['z', -1])
+        self.accept('h', self.positioning, ['h', 1])
+        self.accept('shift-h', self.positioning, ['h', -1])
+
         self.taskMgr.add(self.update, 'update')
 
     def change_coords(self, vert):
@@ -102,114 +87,62 @@ class Marbles(ShowBase):
 
         return x, y
 
-    # def create_3d_regions(self):
-    #     size = 256
-    #     half_size = size / 2
+    def click(self, mouse_pos):
+        print('clicked!')
+        near_pos = Point3()
+        far_pos = Point3()
+        self.camLens.extrude(mouse_pos, near_pos, far_pos)
 
-    #     for vertices in self.generate_vertices():
-    #         # v = [Vec2(*vert[::-1]) for vert in vertices]
-    #         v = [Vec2(*self.change_coords(vert)) for vert in vertices]
-    #         print('coords changed', v)
-    #         center = self.calculate_centroid(v)
-    #         # pos = self.calculate_center(v)
-    #         # center = self.calculate_center(v)
-    #         print('center', center)
-    #         v = [vert - center for vert in v]
-    #         # import pdb; pdb.set_trace()
-    #         print('moved vertices', v)
-    #         model = IrregularPrism(v, height=10).create()
-    #         tex = self.loader.load_texture('brick.jpg')
-    #         model.set_texture(tex)
+        from_pos = self.render.get_relative_point(self.cam, near_pos)
+        to_pos = self.render.get_relative_point(self.cam, far_pos)
 
-    #         # x = center.x - half_size
+        if (result := self.world.ray_test_closest(
+                from_pos, to_pos, BitMask32.bit(1))).has_hit():
 
-    #         # if center.y <= half_size:
-    #         #     y = half_size - center.y
-    #         # else:
-    #         #     y = center.y - half_size
+            match result.get_node().get_tag('category'):
+                case 'ground':
+                    print(result.get_hit_pos())
 
-    #         pos = Point3(center.xy, 0)
-    #         # pos = Point3(0,0,0)
-    #         model.set_pos_hpr(pos, Vec3(0, 0, 0))
-    #         model.reparent_to(self.render)
+                case 'object':
+                    print('set target')
+                    self.target = NodePath(result.get_node())
 
-    # def generate_vertices(self):
-    #     img = cv2.imread('dst.png')
-    #     # kernel = np.ones((3, 3), np.uint8)
-    #     # img = cv2.erode(img, kernel, iterations=2)
-    #     # img = cv2.resize(dst,(64, 64))
-    #     # import pdb; pdb.set_trace()
+            # print(result.get_node())
+            # print(result.get_node().get_name())
+            # print(result.get_node().get_tag('category'))
+            # print(result.get_hit_pos())
 
-    #     img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    def release_target(self):
+        if self.target is not None:
+            self.target = None
 
-    #     ret, region = cv2.threshold(img_gray, 1, 255, cv2.THRESH_BINARY)
-    #     contours, _ = cv2.findContours(region, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    #     # import pdb; pdb.set_trace()
-    #     for i, cont in enumerate(contours):
-    #         arclen = cv2.arcLength(cont, True)
-    #         approx = cv2.approxPolyDP(cont, 0.01 * arclen, True)
-    #         # vertices = [vert.ravel() for vert in approx]
-    #         vertices = [np.array([64, 255], dtype=np.int32), np.array([14, 255], dtype=np.int32), np.array([57, 244], dtype=np.int32)]
-    #         print(vertices)
-    #         yield vertices
+    def get_target_info(self):
+        if self.target is not None:
+            print(f'pos: {self.target.get_pos()}, hpr: {self.target.get_hpr()}')
 
-    #         if i == 0:
-    #             break
-   
+    def positioning(self, key, direction):
+        if self.target is not None:
+            distance = 1
+            angle = 2
+            pos = Point3()
+            hpr = Vec3()
 
-            # for pt in approx:
-            #     x, y = pt.ravel()
-            #     yield x, y
+            match key:
+                case 'x':
+                    pos.x = distance * direction
 
-    # def calculate_centroid(self, pts):
-    #     n = len(pts)
-    #     area = 0.
-    #     x = y = 0
-    #     areas = 0
+                case 'y':
+                    pos.y = distance * direction
 
-    #     for i in range(2, n):
-    #         pt1 = pts[0]
-    #         pt2 = pts[i - 1]
-    #         pt3 = pts[i]
+                case 'z':
+                    pos.z = distance * direction
 
-    #         area = (pt2.x - pt1.x) * (pt3.y - pt1.y) - (pt2.y - pt1.y) * (pt3.x - pt1.x)
-    #         pt = (pt1 + pt2 + pt3) / 3
-    #         x += area * pt.x
-    #         y += area * pt.y
-    #         areas += area
-        
-    #     return Vec2(x / areas, y / areas)
+                case 'h':
+                    hpr.x = angle * direction
 
-    # def calculate_centroid(self, pts):
-    #     n = len(pts)
-    #     area = 0.
-
-    #     centroid_x = 0.
-    #     centroid_y = 0.
-
-    #     for i in range(n):
-    #         x_i, y_i = pts[i]
-    #         x_next, y_next = pts[(i + 1) % n]
-    #         cross_prod = (x_i * y_next) - (x_next * y_i)
-    #         area += cross_prod
-
-    #         centroid_x += (x_i + x_next) * cross_prod
-    #         centroid_y += (y_i + y_next) * cross_prod
-
-    #     area = area / 2.0
-    #     centroid_x = centroid_x / (n * area)
-    #     centroid_y = centroid_y / (n * area)
-
-    #     return Vec2(centroid_x, centroid_y)
-
-
-    # def calculate_center(self, pts):
-    #     total = Vec2()
-
-    #     for pt in pts:
-    #         total += pt
-
-    #     return total / len(pts)
+            pos = self.target.get_pos() + pos
+            hpr = self.target.get_hpr() + hpr
+            self.target.set_pos_hpr(pos, hpr)
 
     def toggle_debug(self):
         # self.toggle_wireframe()
@@ -223,6 +156,9 @@ class Marbles(ShowBase):
         self.dragging_start_time = globalClock.get_frame_time()
 
     def mouse_release(self):
+        if globalClock.get_frame_time() - self.dragging_start_time < 0.2:
+            self.clicked = True
+
         self.dragging = False
         self.before_mouse_pos = None
 
@@ -250,6 +186,10 @@ class Marbles(ShowBase):
 
         if self.mouseWatcherNode.has_mouse():
             mouse_pos = self.mouseWatcherNode.get_mouse()
+
+            if self.clicked:
+                self.click(mouse_pos)
+                self.clicked = False
 
             if self.dragging:
                 if globalClock.get_frame_time() - self.dragging_start_time >= 0.2:

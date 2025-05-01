@@ -20,6 +20,7 @@ class BasicDayLight(NodePath):
         self.node().get_lens().set_near_far(10, 200)
         self.node().set_color((1, 1, 1, 1))
         self.set_pos_hpr(Point3(0, 0, 100), Vec3(-30, -45, 0))
+
         self.node().set_shadow_caster(True, 8192, 8192)
         # self.node().set_shadow_caster(True, 4096, 4096)
 
