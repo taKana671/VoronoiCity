@@ -128,30 +128,6 @@ class CapsuleDome(NodePath):
         self.set_collide_mask(BitMask32.bit(1))
 
 
-class SphereDome(NodePath):
-
-    def __init__(self, name, radius, inner_radius=0, slice_deg=0, bottom_clip=0, top_clip=1):
-        super().__init__(BulletRigidBodyNode(f'sphere_dome_{name}'))
-        self.set_tag('category', 'object')
-
-        self.model = Sphere(
-            radius=radius,
-            inner_radius=inner_radius,
-            slice_deg=slice_deg,
-            bottom_clip=bottom_clip,
-            top_clip=top_clip
-        ).create()
-
-        self.model.reparent_to(self)
-        self.set_color(Color.random_choice())
-
-        shape = BulletConvexHullShape()
-        shape.add_geom(self.model.node().get_geom(0))
-        self.node().add_shape(shape)
-        self.node().set_mass(0)
-        self.set_collide_mask(BitMask32.bit(1))
-
-
 class PineTree(NodePath):
 
     def __init__(self, model, name, scale=1.5):
@@ -183,42 +159,205 @@ class City:
         model.reparent_to(base.scene.city_root)
         base.world.attach(model.node())
 
+    def stack_cylinder(self, building, args_li):
+        z = 0
 
-class Area1(City):
+        for args in args_li:
+            model = Cylinder(**args).create()
+            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
+            z += args['height']
 
-    def build(self):
-        building = Building('area1_0', Point3(-108, 120, 0), Vec3(-56, 0, 0))
-        model = EllipticalPrism(major_axis=8, minor_axis=4, height=30, segs_a=15).create()
-        building.build(model)
         self.attach(building)
 
-        building = Building('area1_1', Point3(-98, 122, 0), Vec3(0, 0, 0))
-        model = Cylinder(radius=3, height=20, segs_a=20).create()
-        building.build(model)
+    def stack_elliptical_prism(self, building, args_li):
+        z = 0
+
+        for args in args_li:
+            model = EllipticalPrism(**args).create()
+            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
+            z += args['height']
+
         self.attach(building)
 
-        building = Building('area1_2', Point3(-54, 108, 0), Vec3(0, 0, 0))
-        for r, h, z in [[15, 20, 0], [10, 5, 20]]:
-            model = Cylinder(radius=r, height=h, segs_a=h).create()
+    def stack_box(self, building, args_li):
+        z = 0
+
+        for i, args in enumerate(args_li):
+            if i > 0:
+                before_args = args_li[i - 1]
+                z += (before_args['height'] + args['height']) / 2
+
+            model = RoundedCornerBox(**args).create()
             building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
 
         self.attach(building)
 
-        building = Building('area1_3', Point3(-121, 93, 7.5), Vec3(-64, 0, 0))
-        model = CapsulePrism(
-            width=10, depth=5, height=15, segs_w=5, segs_d=2, segs_z=15).create()
+    def stack_capsule_prizm(self, building, args_li):
+        z = 0
+
+        for i, args in enumerate(args_li):
+            if i > 0:
+                before_args = args_li[i - 1]
+                z += (before_args['height'] + args['height']) / 2
+
+            model = CapsulePrism(**args).create()
+            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+
+class Area1(City):
+
+    def build(self):
+        building = Building('area1_ep0', Point3(-108, 120, 0), Vec3(-56, 0, 0))
+        model = EllipticalPrism(major_axis=8, minor_axis=4, height=30, segs_a=15).create()
         building.build(model)
         self.attach(building)
 
-        rect = [
-            [Point3(-121, 76, 12.5), Vec3(36, 0, 0), 8, 8, 25, 2],
-            [Point3(-77, 85, 6), Vec3(-32, 0, 0), 40, 20, 12, 2],
-            [Point3(-77, 116, 10), Vec3(-32, 0, 0), 10, 10, 20, 1]
+        building = Building('area1_cy0', Point3(-98, 122, 0), Vec3(0, 0, 0))
+        model = Cylinder(radius=3, height=20, segs_a=20).create()
+        building.build(model)
+        self.attach(building)
+
+        building = Building('area1_cy1', Point3(-54, 108, 0), Vec3(0, 0, 0))
+        args = [dict(radius=15, height=20, segs_a=10), dict(radius=10, height=5, segs_a=3)]
+        self.stack_cylinder(building, args)
+
+        cp = [
+            [Point3(-117, 36, 7.5), Vec3(82, 0, 90), dict(width=15, depth=10, height=40, segs_w=5, segs_d=5, segs_z=20, rounded_right=False)],
+            [Point3(-121, 93, 7.5), Vec3(-64, 0, 0), dict(width=10, depth=5, height=15, segs_w=5, segs_d=2, segs_z=15)]
         ]
-        for pos, hpr, w, d, h, cr in rect:
-            building = Building('area1', pos, hpr)
-            model = RoundedCornerBox(
-                width=w, depth=d, height=h, corner_radius=cr, segs_w=w, segs_d=d, segs_z=h).create()
+        for i, (pos, hpr, args) in enumerate(cp):
+            building = Building(f'area1_cp{i}', pos, hpr)
+            model = CapsulePrism(**args).create()
+            building.build(model)
+            self.attach(building)
+
+        rb = [
+            [Point3(-121, 76, 12.5), Vec3(36, 0, 0), dict(width=8, depth=8, height=25, segs_w=4, segs_d=4, segs_z=10, corner_radius=2)],
+            [Point3(-77, 85, 6), Vec3(-32, 0, 0), dict(width=40, depth=20, height=12, segs_w=20, segs_d=10, segs_z=6, corner_radius=2)],
+            [Point3(-77, 116, 10), Vec3(-32, 0, 0), dict(width=10, depth=10, height=20, segs_w=5, segs_d=5, segs_z=10, corner_radius=1)]
+        ]
+        for i, (pos, hpr, args) in enumerate(rb):
+            building = Building(f'area1_rb{i}', pos, hpr)
+            model = RoundedCornerBox(**args).create()
+            building.build(model)
+            self.attach(building)
+
+
+class Area2(City):
+
+    def build(self):
+        # sphere dome
+        building = Building('area2_sp0', Point3(13, 6, 0), Vec3(164, 0, 0))
+        model = Sphere(radius=14, inner_radius=12, slice_deg=170, bottom_clip=0).create()
+        building.build(model)
+        self.attach(building)
+
+        # double layer and different height cylinder
+        building = Building('area2_cy1', Point3(20, 28, 0), Vec3(78, 0, 0))
+        cy = [
+            [0, 0, dict(radius=8, height=10, segs_a=5)],
+            [5, 0, dict(radius=6, height=30, segs_a=15, ring_slice_deg=180)],
+            [5, 180, dict(radius=6, height=20, segs_a=15, ring_slice_deg=180)]
+        ]
+        for z, h, args in cy:
+            model = Cylinder(**args).create()
+            building.assemble(model, Point3(0, 0, z), Vec3(h, 0, 0))
+
+        self.attach(building)
+
+        # tall cylinder
+        cy = [
+            [Point3(-22, 97, 0), dict(radius=6, height=50, segs_a=10)],
+            [Point3(5, 48, 0), dict(radius=5, height=30, segs_a=15)]
+        ]
+        for pos, args in cy:
+            building = Building('area2_cy2', pos, Vec3(0, 0, 0))
+            building.build(Cylinder(**args).create())
+            self.attach(building)
+
+        # double layer cylinder
+        building = Building('area1_cy4', Point3(-32, 19, 0), Vec3(0, 0, 0))
+        args = [dict(radius=7, height=15, segs_a=5), dict(radius=6, height=3, segs_a=3)]
+        self.stack_cylinder(building, args)
+
+        # double layer rounded corner boxes, same center
+        building = Building('area2_rb1', Point3(36, 20, 12.5), Vec3(-40, 0, 0))
+        args = [
+            dict(width=15, depth=15, height=25, segs_w=5, segs_d=5, segs_z=10, corner_radius=2),
+            dict(width=10, depth=10, height=5, segs_w=4, segs_d=4, segs_z=2, corner_radius=2)
+        ]
+        self.stack_box(building, args)
+
+        building = Building('area2_rb3', Point3(-25, 40, 2.5), Vec3(10, 0, 0))
+        args = [
+            dict(width=40, depth=20, height=5, segs_w=20, segs_d=10, segs_z=3, corner_radius=4),
+            dict(width=35, depth=15, height=20, segs_w=10, segs_d=5, segs_z=5, corner_radius=4),
+        ]
+        self.stack_box(building, args)
+
+        # double layer rounded corner boxes with different width, offset center
+        building = Building('area2_rb2', Point3(-18, 74, 6), Vec3(10, 0, 0))
+        rb = [
+            [0, 0, dict(width=40, depth=20, height=12, segs_w=20, segs_d=10, segs_z=6, corner_radius=2)],
+            [11, 5, dict(width=20, depth=15, height=10, segs_w=15, segs_d=5, segs_z=3, corner_radius=2)],
+        ]
+        for z, x, args in rb:
+            model = RoundedCornerBox(**args).create()
+            building.assemble(model, Point3(x, 0, z), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # double layer capsule prism
+        building = Building('area2_cp0', Point3(2, 102, 15), Vec3(-52, 0, 0))
+        args = [
+            dict(width=20, depth=20, height=30, segs_w=10, segs_d=10, segs_z=15),
+            dict(width=18, depth=18, height=2.5, segs_w=9, segs_d=9, segs_z=2),
+        ]
+        self.stack_capsule_prizm(building, args)
+
+        building = Building('area2_cp1', Point3(71, 66, 7.5), Vec3(48, 0, 0))
+        args = [
+            dict(width=20, depth=15, height=15, segs_w=10, segs_d=5, segs_z=5),
+            dict(width=18, depth=13, height=5, segs_w=9, segs_d=6, segs_z=3),
+        ]
+        self.stack_capsule_prizm(building, args)
+
+        building = Building('area2_cp2', Point3(58, 77, 7.5), Vec3(48, 0, 0))
+        args = [
+            dict(width=25, depth=15, height=20, segs_w=5, segs_d=3, segs_z=10),
+            dict(width=23, depth=13, height=5, segs_w=5, segs_d=4, segs_z=3),
+        ]
+        self.stack_capsule_prizm(building, args)
+
+        # double layer elliptical prism, different rotation angle
+        building = Building('area1_ep0', Point3(-14, 22, 0), Vec3(224, 0, 0))
+        ep = [
+            [0, dict(major_axis=10, minor_axis=5, height=35, segs_a=5)],
+            [35, dict(major_axis=10, minor_axis=5, height=5, segs_a=3, ring_slice_deg=180)],
+        ]
+        for z, args in ep:
+            model = EllipticalPrism(**args).create()
+            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
+        self.attach(building)
+
+        # double layer elliptical prism
+        building = Building('area1_ep1', Point3(31, 41, 0), Vec3(146, 0, 0))
+        args = [
+            dict(major_axis=8, minor_axis=4, height=20, segs_a=10),
+            dict(major_axis=6, minor_axis=2, height=4, segs_a=2),
+        ]
+        self.stack_elliptical_prism(building, args)
+
+        # capsule prism
+        cp = [
+            [Point3(37, 81, 2.5), Vec3(140, 0, 90), dict(width=5, depth=10, height=15, segs_w=2, segs_d=5, segs_z=5, rounded_right=False)],
+            [Point3(46, 92, 2.5), Vec3(140, 0, 90), dict(width=5, depth=10, height=10, segs_w=2, segs_d=5, segs_z=5, rounded_right=False)]
+        ]
+        for pos, hpr, args in cp:
+            building = Building('area1_cp1', pos, hpr)
+            model = CapsulePrism(**args).create()
             building.build(model)
             self.attach(building)
 
@@ -233,25 +372,20 @@ class AreaTree(City):
             (-126, 121, 0),
             (-124, 125, 0),
             (-113, 82, 0),
+            (-124, 9, 0),
+            (-107, 61, 0),
+            (-102, 51, 0),
+            (31, 6, 0),
+            (-44, 66, 0),
+            (14, 77, 0),
+            (-0.2, 36, 0),
+            (42, 31, 0),
+            (46, 54, 0),
+            (55, 49, 0),
+            (58, 95, 0)
         ]
 
         for i, pos in enumerate(tree_pos):
             tree = PineTree(self.model, i)
             tree.set_pos(pos)
             self.attach(tree)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
