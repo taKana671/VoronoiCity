@@ -255,7 +255,7 @@ class Area2(City):
         self.attach(building)
 
         # double layer and different height cylinder
-        building = Building('area2_cy1', Point3(20, 28, 0), Vec3(78, 0, 0))
+        building = Building('area2_cy0', Point3(20, 28, 0), Vec3(78, 0, 0))
         cy = [
             [0, 0, dict(radius=8, height=10, segs_a=5)],
             [5, 0, dict(radius=6, height=30, segs_a=15, ring_slice_deg=180)],
@@ -272,25 +272,25 @@ class Area2(City):
             [Point3(-22, 97, 0), dict(radius=6, height=50, segs_a=10)],
             [Point3(5, 48, 0), dict(radius=5, height=30, segs_a=15)]
         ]
-        for pos, args in cy:
-            building = Building('area2_cy2', pos, Vec3(0, 0, 0))
+        for i, (pos, args) in enumerate(cy):
+            building = Building(f'area2_cy{i + 1}', pos, Vec3(0, 0, 0))
             building.build(Cylinder(**args).create())
             self.attach(building)
 
         # double layer cylinder
-        building = Building('area1_cy4', Point3(-32, 19, 0), Vec3(0, 0, 0))
+        building = Building('area1_cy3', Point3(-32, 19, 0), Vec3(0, 0, 0))
         args = [dict(radius=7, height=15, segs_a=5), dict(radius=6, height=3, segs_a=3)]
         self.stack_cylinder(building, args)
 
         # double layer rounded corner boxes, same center
-        building = Building('area2_rb1', Point3(36, 20, 12.5), Vec3(-40, 0, 0))
+        building = Building('area2_rb0', Point3(36, 20, 12.5), Vec3(-40, 0, 0))
         args = [
             dict(width=15, depth=15, height=25, segs_w=5, segs_d=5, segs_z=10, corner_radius=2),
             dict(width=10, depth=10, height=5, segs_w=4, segs_d=4, segs_z=2, corner_radius=2)
         ]
         self.stack_box(building, args)
 
-        building = Building('area2_rb3', Point3(-25, 40, 2.5), Vec3(10, 0, 0))
+        building = Building('area2_rb1', Point3(-25, 40, 2.5), Vec3(10, 0, 0))
         args = [
             dict(width=40, depth=20, height=5, segs_w=20, segs_d=10, segs_z=3, corner_radius=4),
             dict(width=35, depth=15, height=20, segs_w=10, segs_d=5, segs_z=5, corner_radius=4),
@@ -355,11 +355,142 @@ class Area2(City):
             [Point3(37, 81, 2.5), Vec3(140, 0, 90), dict(width=5, depth=10, height=15, segs_w=2, segs_d=5, segs_z=5, rounded_right=False)],
             [Point3(46, 92, 2.5), Vec3(140, 0, 90), dict(width=5, depth=10, height=10, segs_w=2, segs_d=5, segs_z=5, rounded_right=False)]
         ]
-        for pos, hpr, args in cp:
-            building = Building('area1_cp1', pos, hpr)
+        for i, (pos, hpr, args) in enumerate(cp):
+            building = Building(f'area1_cp{input}', pos, hpr)
             model = CapsulePrism(**args).create()
             building.build(model)
             self.attach(building)
+
+
+class Aera3(City):
+
+    def build(self):
+        # double layer rounded corner boxes, same center
+        building = Building('area3_rb0', Point3(41, 120, 18), Vec3(0, 0, 0))
+        args = [
+            dict(width=35, depth=12, height=36, segs_w=10, segs_d=5, segs_z=15, corner_radius=3),
+            dict(width=30, depth=7, height=4, segs_w=5, segs_d=5, segs_z=2, corner_radius=3)
+        ]
+        self.stack_box(building, args)
+
+        building = Building('area3_rb1', Point3(112, 19, 7.5), Vec3(-30, 0, 0))
+        args = [
+            dict(width=20, depth=15, height=15, segs_w=10, segs_d=5, segs_z=5, corner_radius=2),
+            dict(width=15, depth=10, height=3, segs_w=5, segs_d=5, segs_z=2, corner_radius=2)
+        ]
+        self.stack_box(building, args)
+
+        # rounded corner boxe having cylinder on the top
+        building = Building('area3_rb2', Point3(110, 103, 25), Vec3(0, 0, 0))
+        model_1 = RoundedCornerBox(
+            width=30, depth=30, height=50, segs_w=15, segs_d=15, segs_z=25, corner_radius=2).create()
+        model_2 = Cylinder(radius=12, height=5, segs_a=2).create()
+
+        for i, model in enumerate([model_1, model_2]):
+            building.assemble(model, Point3(0, 0, i * 25), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # triple layer cylinders
+        building = Building('area3_cy0', Point3(85, 110, 0), Vec3(0, 0, 0))
+        args = [
+            dict(radius=8, height=15, segs_a=4),
+            dict(radius=6, height=20, segs_a=10),
+            dict(radius=4, height=10, segs_a=5)
+        ]
+        self.stack_cylinder(building, args)
+
+        # one quarter capsule
+        building = Building('area3_cp0', Point3(96, 44, 1), Vec3(46, 0, 0))
+        li = [
+            [Point3(0, 0, 0), Vec3(0, 0, 0), CapsulePrism(width=30, depth=30, height=2, segs_w=15, segs_d=15, segs_z=2)],
+            [Point3(0, 0, 2), Vec3(0, 0, 0), CapsulePrism(width=25, depth=25, height=2, segs_w=5, segs_d=5, segs_z=2)],
+            [Point3(11, 2, 3), Vec3(0, 0, -90), Capsule(radius=12, inner_radius=10, height=22, segs_a=6, ring_slice_deg=270)]
+        ]
+
+        for pos, hpr, maker in li:
+            model = maker.create()
+            building.assemble(model, pos, hpr)
+
+        self.attach(building)
+
+
+class Area4(City):
+
+    def build(self):
+        # double layer rounded corner boxes, same center
+        building = Building('area4_rb1', Point3(-119, -66, 7.5), Vec3(92, 0, 0))
+        args = [
+            dict(width=50, depth=10, height=15, segs_w=15, segs_d=5, segs_z=5, corner_radius=2),
+            dict(width=48, depth=8, height=3, segs_w=14, segs_d=6, segs_z=2, corner_radius=2)
+        ]
+        self.stack_box(building, args)
+
+        # sphere dome
+        building = Building('area4_sp0', Point3(-78, -101, 1), Vec3(0, 0, 0))
+        li = [
+            [Point3(0, 0, 0), Cylinder(radius=22, height=2, segs_bottom_cap=11, segs_top_cap=11)],
+            [Point3(0, 0, 2), Cylinder(radius=20, height=2, segs_bottom_cap=10, segs_top_cap=10)],
+            [Point3(0, 0, 4), Cylinder(radius=18, height=2, segs_bottom_cap=9, segs_top_cap=9)],
+            [Point3(0, 0, 6), Sphere(radius=16, inner_radius=14, slice_deg=120, bottom_clip=0, top_clip=0.8, segs_bottom_cap=8, segs_top_cap=4)]
+        ]
+
+        for pos, maker in li:
+            model = maker.create()
+            building.assemble(model, pos, Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # two rounded corner boxes
+        li = [
+            [Point3(-55, -121, 15), Vec3(-86, 0, 0), 30],
+            [Point3(-48, -112, 7.5), Vec3(-86, 0, 0), 15]
+        ]
+
+        for i, (pos, hpr, h) in enumerate(li):
+            building = Building(f'area4_rb2_{i}', pos, hpr)
+            model = RoundedCornerBox(
+                width=10, depth=10, height=h, corner_radius=5, rounded_b_left=False, rounded_f_right=False
+            ).create()
+            building.build(model)
+            self.attach(building)
+
+
+class Area6(City):
+
+    def build(self):
+        # multi layer coner rounded boxes
+        building = Building('area5_rb0', Point3(-107, -9, 5), Vec3(4, 0, 0))
+        args = [
+            dict(width=14, depth=14, height=10, segs_w=5, segs_d=5, segs_z=5, corner_radius=2),
+            dict(width=12, depth=12, height=20, segs_w=4, segs_d=4, segs_z=10, corner_radius=2),
+            dict(width=10, depth=10, height=10, segs_w=3, segs_d=3, segs_z=5, corner_radius=2),
+            dict(width=8, depth=8, height=2, segs_w=2, segs_d=2, segs_z=2, corner_radius=2)
+        ]
+        self.stack_box(building, args)
+
+        building = Building('area5_rb1', Point3(-98, 10, 5), Vec3(-50, 0, 0))
+        args = [
+            dict(width=14, depth=14, height=10, segs_w=5, segs_d=5, segs_z=5, corner_radius=2),
+            dict(width=12, depth=12, height=20, segs_w=4, segs_d=4, segs_z=8, corner_radius=2),
+            dict(width=10, depth=10, height=2, segs_w=3, segs_d=3, segs_z=3, corner_radius=2),
+        ]
+        self.stack_box(building, args)
+
+        building = Building('area5_rb2', Point3(-88, -6, 5), Vec3(22, 0, 0))
+        args = [
+            dict(width=14, depth=14, height=15, segs_w=5, segs_d=5, segs_z=5, corner_radius=2),
+            dict(width=12, depth=12, height=25, segs_w=4, segs_d=4, segs_z=10, corner_radius=2),
+            dict(width=10, depth=10, height=10, segs_w=3, segs_d=3, segs_z=5, corner_radius=2),
+            dict(width=8, depth=8, height=4, segs_w=2, segs_d=2, segs_z=2, corner_radius=2)
+        ]
+        self.stack_box(building, args)
+
+
+
+
+
+
 
 
 class AreaTree(City):
@@ -382,7 +513,30 @@ class AreaTree(City):
             (42, 31, 0),
             (46, 54, 0),
             (55, 49, 0),
-            (58, 95, 0)
+            (58, 95, 0),
+
+            # Area3
+            (20, 114, 0),
+            (17, 121, 0),
+            (114, 33, 0),
+            (124, 34, 0),
+            (122, 43, 0),
+            (93, 13, 0),
+
+            # Area4
+            (-17, -126, 0),
+            (-24, -126, 0),
+            (-120, -125, 0),
+            (-113, -125, 0),
+            (-116, -96, 0),
+            (-126, -101, 0),
+            (-118, -36, 0),
+            (-122, -32, 0),
+            (-104, -101, 0),
+            (-109, -109, 0),
+            (-104, -115, 0),
+            (-44, -123, 0)
+
         ]
 
         for i, pos in enumerate(tree_pos):
