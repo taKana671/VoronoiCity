@@ -459,32 +459,52 @@ class Area4(City):
 class Area6(City):
 
     def build(self):
+        # one corner rounded box, 3 stacked
+        building = Building('area4_rb0', Point3(-72, 22, 5), Vec3(-68, 0, 0))
+        start_w, diff = 40, 10
+
+        for i in range(3):
+            h = 20 if i == 0 else 5
+            x = -(diff / 2) * i
+            z = 0 if i == 0 else 12.5 + h * (i - 1)
+            w = start_w - diff * i
+
+            model = RoundedCornerBox(
+                width=w, depth=20, height=h, corner_radius=10,
+                rounded_b_left=False, rounded_b_right=False, rounded_f_left=False
+            ).create()
+            building.assemble(model, Point3(x, 0, z), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+
+# class Area
         # multi layer coner rounded boxes
-        building = Building('area5_rb0', Point3(-107, -9, 5), Vec3(4, 0, 0))
-        args = [
-            dict(width=14, depth=14, height=10, segs_w=5, segs_d=5, segs_z=5, corner_radius=2),
-            dict(width=12, depth=12, height=20, segs_w=4, segs_d=4, segs_z=10, corner_radius=2),
-            dict(width=10, depth=10, height=10, segs_w=3, segs_d=3, segs_z=5, corner_radius=2),
-            dict(width=8, depth=8, height=2, segs_w=2, segs_d=2, segs_z=2, corner_radius=2)
-        ]
-        self.stack_box(building, args)
+        # building = Building('area5_rb0', Point3(-107, -9, 5), Vec3(4, 0, 0))
+        # args = [
+        #     dict(width=14, depth=14, height=10, segs_w=5, segs_d=5, segs_z=5, corner_radius=2),
+        #     dict(width=12, depth=12, height=20, segs_w=4, segs_d=4, segs_z=10, corner_radius=2),
+        #     dict(width=10, depth=10, height=10, segs_w=3, segs_d=3, segs_z=5, corner_radius=2),
+        #     dict(width=8, depth=8, height=2, segs_w=2, segs_d=2, segs_z=2, corner_radius=2)
+        # ]
+        # self.stack_box(building, args)
 
-        building = Building('area5_rb1', Point3(-98, 10, 5), Vec3(-50, 0, 0))
-        args = [
-            dict(width=14, depth=14, height=10, segs_w=5, segs_d=5, segs_z=5, corner_radius=2),
-            dict(width=12, depth=12, height=20, segs_w=4, segs_d=4, segs_z=8, corner_radius=2),
-            dict(width=10, depth=10, height=2, segs_w=3, segs_d=3, segs_z=3, corner_radius=2),
-        ]
-        self.stack_box(building, args)
+        # building = Building('area5_rb1', Point3(-98, 10, 5), Vec3(-50, 0, 0))
+        # args = [
+        #     dict(width=14, depth=14, height=10, segs_w=5, segs_d=5, segs_z=5, corner_radius=2),
+        #     dict(width=12, depth=12, height=20, segs_w=4, segs_d=4, segs_z=8, corner_radius=2),
+        #     dict(width=10, depth=10, height=2, segs_w=3, segs_d=3, segs_z=3, corner_radius=2),
+        # ]
+        # self.stack_box(building, args)
 
-        building = Building('area5_rb2', Point3(-88, -6, 5), Vec3(22, 0, 0))
-        args = [
-            dict(width=14, depth=14, height=15, segs_w=5, segs_d=5, segs_z=5, corner_radius=2),
-            dict(width=12, depth=12, height=25, segs_w=4, segs_d=4, segs_z=10, corner_radius=2),
-            dict(width=10, depth=10, height=10, segs_w=3, segs_d=3, segs_z=5, corner_radius=2),
-            dict(width=8, depth=8, height=4, segs_w=2, segs_d=2, segs_z=2, corner_radius=2)
-        ]
-        self.stack_box(building, args)
+        # building = Building('area5_rb2', Point3(-88, -6, 5), Vec3(22, 0, 0))
+        # args = [
+        #     dict(width=14, depth=14, height=15, segs_w=5, segs_d=5, segs_z=5, corner_radius=2),
+        #     dict(width=12, depth=12, height=25, segs_w=4, segs_d=4, segs_z=10, corner_radius=2),
+        #     dict(width=10, depth=10, height=10, segs_w=3, segs_d=3, segs_z=5, corner_radius=2),
+        #     dict(width=8, depth=8, height=4, segs_w=2, segs_d=2, segs_z=2, corner_radius=2)
+        # ]
+        # self.stack_box(building, args)
 
 
 
@@ -535,7 +555,11 @@ class AreaTree(City):
             (-104, -101, 0),
             (-109, -109, 0),
             (-104, -115, 0),
-            (-44, -123, 0)
+            (-44, -123, 0),
+
+            # Area6
+            (-78, 49, 0),
+            (-86, 45, 0)
 
         ]
 
