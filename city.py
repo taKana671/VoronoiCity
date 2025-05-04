@@ -460,7 +460,7 @@ class Area6(City):
 
     def build(self):
         # one corner rounded box, 3 stacked
-        building = Building('area4_rb0', Point3(-72, 22, 5), Vec3(-68, 0, 0))
+        building = Building('area6_rb0', Point3(-72, 22, 5), Vec3(-68, 0, 0))
         start_w, diff = 40, 10
 
         for i in range(3):
@@ -476,6 +476,105 @@ class Area6(City):
             building.assemble(model, Point3(x, 0, z), Vec3(0, 0, 0))
 
         self.attach(building)
+
+        # two layer of capsule prism and rounded corner box
+        hc, hr = 5, 15
+        building = Building('area6_cp0', Point3(-104, 1, hc / 2), Vec3(64, 0, 0))
+        li = [
+            CapsulePrism(width=30, depth=15, height=hc, segs_w=10, segs_d=5, segs_z=int(hc / 2)),
+            RoundedCornerBox(width=30, depth=10, height=hr, corner_radius=2, segs_w=15, segs_d=5, segs_z=int(hr / 2))
+        ]
+
+        for i, maker in enumerate(li):
+            h = 0 if i == 0 else (hc + hr) / 2
+            model = maker.create()
+            building.assemble(model, Point3(0, 0, h), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # three cylinders with different height
+        h, r = 50, 3
+        building = Building('area6_cy0', Point3(-87, -7, 0), Vec3(-24, 0, 0))
+
+        for i, (x, y) in enumerate([(-r, 0), (0, r * 3 ** 0.5), (r, 0)]):
+            height = h - i * 10
+            maker = Cylinder(radius=r, height=height, segs_a=int(height / 2))
+            model = maker.create()
+            building.assemble(model, Point3(x, y, 0), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # two corner rounded box, 3 stacked
+        building = Building('area6_rb1', Point3(-91, -48, 5), Vec3(-76, 0, 0))
+        start_w, diff = 40, 5
+
+        for i in range(3):
+            w = start_w - diff * i
+            d = 20 - diff * i
+            h = 20 if i == 0 else 5
+            z = 0 if i == 0 else 12.5 + h * (i - 1)
+            x = -(diff / 2) * i
+            y = -(diff / 2) * i
+
+            model = RoundedCornerBox(
+                width=w, depth=d, height=h, corner_radius=5, rounded_b_right=False, rounded_f_left=False
+            ).create()
+            building.assemble(model, Point3(x, y, z), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # sphere dome
+        building = Building('area6_sp0', Point3(-70, -20, 0), Vec3(22, 0, 0))
+        model = Sphere(radius=15, inner_radius=13, slice_deg=170, bottom_clip=0).create()
+        building.build(model)
+        self.attach(building)
+
+        # 4 elliptical prism, different height
+        building = Building('area6_cy0', Point3(-67, -48, 0), Vec3(38, 0, 0))
+
+        for i, (x, y) in enumerate([(0, 6), (-4, 0), (4, 0), (0, -6)]):
+            h = 45 - i * 8
+            model = EllipticalPrism(major_axis=4, minor_axis=3, height=h, segs_a=5).create()
+            building.assemble(model, Point3(x, y, 0), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # sphere dome
+        building = Building('area4_sp1', Point3(-9, -99, 1), Vec3(-138, 0, 0))
+
+        li = [
+            Cylinder(radius=22, height=2, segs_bottom_cap=11, segs_top_cap=11, ring_slice_deg=180),
+            Cylinder(radius=20, height=2, segs_bottom_cap=10, segs_top_cap=10, ring_slice_deg=180),
+            Cylinder(radius=18, height=2, segs_bottom_cap=9, segs_top_cap=9, ring_slice_deg=180),
+            Sphere(radius=16, inner_radius=14, slice_deg=180, bottom_clip=0, segs_bottom_cap=8, segs_top_cap=8)
+        ]
+
+        for i, maker in enumerate(li):
+            model = maker.create()
+            building.assemble(model, Point3(0, -2 * i, 2 * i), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # rounded corner box with cylinder on the top
+        building = Building('area4_rb2', Point3(-33, -63, 1), Vec3(-34, 0, 0))
+        li = [
+            [Point3(0, 0, 10), Vec3(0, 0, 0), RoundedCornerBox(width=30, depth=20, height=18, segs_w=4, segs_d=4, segs_z=5, corner_radius=5)],
+            [Point3(-7, 0, 18), Vec3(0, 0, 0), Cylinder(radius=7, height=6, segs_a=3, segs_bottom_cap=3, segs_top_cap=3)]
+        ]
+        for pos, hpr, maker in li:
+            model = maker.create()
+            building.assemble(model, pos, hpr)
+
+        self.attach(building)
+
+        # three layer cylinders
+        building = Building('area2_cy0', Point3(-42, -80, 0), Vec3(00, 0, 0))
+        args = [
+            dict(radius=8, height=10, segs_a=5),
+            dict(radius=6, height=20, segs_a=15),
+            dict(radius=4, height=20, segs_a=15)
+        ]
+        self.stack_cylinder(building, args)
 
 
 # class Area
@@ -559,7 +658,19 @@ class AreaTree(City):
 
             # Area6
             (-78, 49, 0),
-            (-86, 45, 0)
+            (-86, 45, 0),
+            (-75, -6, 0),
+            (-96, -13, 0),
+            (-94, 30, 0),
+            (-56, -41, 0),
+            (-53, -32, 0),
+            (-72, -61, 0),
+            (-2, -75, 0),
+            (-11, -69, 0),
+            (-58, -71, 0),
+            (-54, -61, 0),
+            (-37, -100, 0),
+            (-43, -94, 0)
 
         ]
 
