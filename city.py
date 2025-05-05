@@ -8,7 +8,7 @@ from panda3d.core import NodePath, PandaNode
 from panda3d.core import BitMask32, Vec3, Point3, LColor
 from panda3d.core import TransformState
 
-from shapes.src import Cylinder, EllipticalPrism, Capsule, CapsulePrism, RoundedCornerBox, Sphere, Torus
+from shapes.src import Cylinder, EllipticalPrism, Capsule, CapsulePrism, RoundedCornerBox, Sphere, Torus, Cone
 
 
 class Color(Enum):
@@ -605,7 +605,7 @@ class Area7(City):
 
         # multi layer sylinder, different center y
         building = Building('area7_cy0', Point3(-35, -19, 0), Vec3(4, 0, 0))
-        n, v, h = 9, 4, 6
+        n, v, h = 10, 4, 6
 
         for i in range(n):
             model = Cylinder(radius=6, height=h, segs_a=3).create()
@@ -663,16 +663,93 @@ class Area7(City):
 
         self.attach(building)
 
-        # multi layer elliptical prism
-        # building = Building('area7_ep0', Point3(-86, -53, 0), Vec3(18, 0, 0))
+        # multi layer corner rounded boxes, different angle
+        building = Building('area7_rb1', Point3(55, -6, 2.5), Vec3(-28, 0, 0))
+        z, h = 0, 5
 
-        # for i in range(5):
-        #     model = EllipticalPrism(
-        #         major_axis=10, minor_axis=5, height=6, segs_a=2, segs_bottom_cap=5, segs_top_cap=5
-        #     ).create()
-        #     building.assemble(model, Point3(-2 * i, 0, 6 * i), Vec3(20 * i, 0, 0))
+        for i in range(9):
+            model = RoundedCornerBox(width=20, depth=20, height=5, corner_radius=5).create()
+            angle = 0 if i % 2 == 0 else 45
+            building.assemble(model, Point3(0, 0, z), Vec3(angle, 0, 0))
+            z += h
+
+        self.attach(building)
+
+        building = Building('area7_cp1', Point3(77, -12, 5), Vec3(76, 0, 0))
+
+        args = [
+            dict(width=16, depth=14, height=10, segs_w=8, segs_d=7, segs_z=5),
+            dict(width=14, depth=12, height=2, segs_w=7, segs_d=6, segs_z=2),
+        ]
+        self.stack_capsule_prizm(building, args)
+
+        building = Building('area7_cp2', Point3(93, -17, 5), Vec3(76, 0, 0))
+
+        args = [
+            dict(width=16, depth=14, height=10, segs_w=8, segs_d=7, segs_z=5),
+            dict(width=14, depth=12, height=2, segs_w=7, segs_d=6, segs_z=2),
+        ]
+        self.stack_capsule_prizm(building, args)
+
+        # two layer of capsule prism and rounded corner box
+        hc, hr = 5, 10
+        building = Building('area7_cp3', Point3(73, -60, hc / 2), Vec3(16, 0, 0))
+        li = [
+            CapsulePrism(width=20, depth=15, height=hc, segs_w=10, segs_d=5, segs_z=int(hc / 2)),
+            RoundedCornerBox(width=25, depth=10, height=hr, corner_radius=2, segs_w=15, segs_d=5, segs_z=int(hr / 2))
+        ]
+
+        for i, maker in enumerate(li):
+            h = 0 if i == 0 else (hc + hr) / 2
+            model = maker.create()
+            building.assemble(model, Point3(0, 0, h), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # multi layer corner rounded boxes, different angle
+        building = Building('area7_rb2', Point3(68, -44, 2.5), Vec3(0, 0, 0))
+        z, h = 0, 5
+
+        for i in range(12):
+            model = RoundedCornerBox(width=10, depth=10, height=5, corner_radius=2).create()
+            angle = 0 if i % 2 == 0 else 45
+            building.assemble(model, Point3(0, 0, z), Vec3(angle, 0, 0))
+            z += h
+
+        self.attach(building)
+
+
+
+        
+        # # three cylinders with different height
+        # h, r = 30, 3
+        # building = Building('area6_cy0', Point3(79, -3, 0), Vec3(0, 0, 0))
+
+        # for i, (x, y) in enumerate([(-r, 0), (0, r * 3 ** 0.5), (r, 0)]):
+        #     height = h - i * 10
+        #     maker = Cylinder(radius=r, height=height, segs_a=int(height / 2))
+        #     model = maker.create()
+        #     building.assemble(model, Point3(x, y, 0), Vec3(0, 0, 0))
 
         # self.attach(building)
+
+
+
+        # multi layer elliptical prism
+        # building = Building('area7_ep0', Point3(65, -41, 0), Vec3(18, 0, 0))
+
+        # for i in range(8):
+        #     model = EllipticalPrism(
+        #         major_axis=10, minor_axis=5, height=6, segs_a=3, segs_bottom_cap=5, segs_top_cap=5
+        #     ).create()
+        #     building.assemble(model, Point3(-2 * i, 0, 6 * i), Vec3(20 * i, 0, 0))
+        #     # building.assemble(model, Point3(0, 0, 6 * i), Vec3(20 * i, 0, 0))
+
+        # self.attach(building)
+
+
+
+
 
         # # half torus
         # building = Building('area4_tr0', Point3(48, -9, 3.5), Vec3(-104, 0, 0))
@@ -691,38 +768,28 @@ class Area7(City):
 
 
 
-        # multi layer corner rounded boxes, different angle
-        building = Building('area7_rb1', Point3(55, -6, 2.5), Vec3(-28, 0, 0))
-        z, h = 0, 5
+        
 
-        for i in range(7):
-            model = RoundedCornerBox(width=20, depth=20, height=5, corner_radius=5).create()
-            angle = 0 if i % 2 == 0 else 45
-            building.assemble(model, Point3(0, 0, z), Vec3(angle, 0, 0))
-            z += h
+        # # one corner rounded box, 2 stacked
+        # building = Building('area7_rb0', Point3(83, -16, 5), Vec3(166, 0, 0))
+        # start_w, diff = 30, 10
+        # z = 0
 
-        self.attach(building)
+        # for i in range(2):
+        #     h = 15 if i == 0 else 5
+        #     x = -(diff / 2) * i
+        #     # z = 0 if i == 0 else 12.5 + h * (i - 1)
+        #     z += 0 if i == 0 else h / 2
+        #     w = start_w - diff * i
 
-        # one corner rounded box, 2 stacked
-        building = Building('area7_rb0', Point3(83, -16, 5), Vec3(166, 0, 0))
-        start_w, diff = 30, 10
-        z = 0
+        #     model = RoundedCornerBox(
+        #         width=w, depth=20 - i * 5, height=h, corner_radius=8,
+        #         rounded_b_left=False, rounded_b_right=False, rounded_f_left=False
+        #     ).create()
+        #     building.assemble(model, Point3(x, 0, z), Vec3(0, 0, 0))
+            # z += h / 2
 
-        for i in range(2):
-            h = 15 if i == 0 else 5
-            x = -(diff / 2) * i
-            # z = 0 if i == 0 else 12.5 + h * (i - 1)
-            z += 0 if i == 0 else h / 2
-            w = start_w - diff * i
-
-            model = RoundedCornerBox(
-                width=w, depth=20 - i * 5, height=h, corner_radius=8,
-                rounded_b_left=False, rounded_b_right=False, rounded_f_left=False
-            ).create()
-            building.assemble(model, Point3(x, 0, z), Vec3(0, 0, 0))
-            z += h / 2
-
-        self.attach(building)
+        # self.attach(building)
 
       
 
@@ -847,7 +914,11 @@ class AreaTree(City):
             (-25, -2.5, 0),
             (-37, -2.9, 0),
             (20, -39, 0),
-            (21, -29, 0)
+            (21, -29, 0),
+            (69, 8, 0),
+            (61, 13, 0),
+            (82, -42, 0),
+            (49, -71, 0)
 
         ]
 
