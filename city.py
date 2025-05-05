@@ -8,7 +8,7 @@ from panda3d.core import NodePath, PandaNode
 from panda3d.core import BitMask32, Vec3, Point3, LColor
 from panda3d.core import TransformState
 
-from shapes.src import Cylinder, EllipticalPrism, Capsule, CapsulePrism, RoundedCornerBox, Sphere
+from shapes.src import Cylinder, EllipticalPrism, Capsule, CapsulePrism, RoundedCornerBox, Sphere, Torus
 
 
 class Color(Enum):
@@ -568,13 +568,184 @@ class Area6(City):
         self.attach(building)
 
         # three layer cylinders
-        building = Building('area2_cy0', Point3(-42, -80, 0), Vec3(00, 0, 0))
+        building = Building('area2_cy0', Point3(-42, -80, 0), Vec3(0, 0, 0))
         args = [
             dict(radius=8, height=10, segs_a=5),
             dict(radius=6, height=20, segs_a=15),
             dict(radius=4, height=20, segs_a=15)
         ]
         self.stack_cylinder(building, args)
+
+
+class Area7(City):
+
+    def build(self):
+        # triple layer capsule prism, different w, d, h
+        building = Building('area7_cp0', Point3(3, -19, 7.5), Vec3(-20, 0, 0))
+        start_w, start_d = 30, 25
+        diff = 5
+        z = 0
+
+        for i in range(3):
+            h = 15 if i == 0 else 4
+            w = start_w - diff * i
+            d = start_d - diff * i
+            z += (0 if i == 0 else h / 2)
+            pos = Point3(diff / 2 * i, -diff / 2 * i, z)
+
+            model = CapsulePrism(
+                width=w, depth=d, height=h, segs_w=int(w / 2), segs_d=int(d / 2),
+                segs_z=int(h / 2), rounded_right=False
+            ).create()
+
+            building.assemble(model, pos, Vec3(0, 0, 0))
+            z += h / 2
+
+        self.attach(building)
+
+        # multi layer sylinder, different center y
+        building = Building('area7_cy0', Point3(-35, -19, 0), Vec3(4, 0, 0))
+        n, v, h = 9, 4, 6
+
+        for i in range(n):
+            model = Cylinder(radius=6, height=h, segs_a=3).create()
+            y = 0 if i == 0 or i == n - 1 else (v if i % 2 == 0 else -v)
+            building.assemble(model, Point3(0, y, h * i), Vec3(0, 0, 0))
+
+        self.attach(building)
+
+        # double layer two rounded corner boxes, different h, w, d
+        building = Building('area7_rb0', Point3(-12, -43, 5), Vec3(-34, 0, 0))
+        diff = 5
+        z = 0
+
+        for i in range(2):
+            w = 35 - diff * i
+            d = 20 - diff * i
+            h = 10 if i == 0 else 5
+            z += (0 if i == 0 else h / 2)
+            pos = Point3(-diff / 2 * i, diff / 2 * i, z)
+
+            model = RoundedCornerBox(
+                width=w, depth=d, height=h, corner_radius=d / 2, segs_w=int(w / 2), segs_d=int(d / 2),
+                segs_z=int(h / 2), rounded_b_left=False, rounded_f_right=False
+            ).create()
+
+            building.assemble(model, pos, Vec3(0, 0, 0))
+            z += h / 2
+
+        self.attach(building)
+
+        # half torus
+        building = Building('area4_tr0', Point3(18, -58, 3.5), Vec3(-104, 0, 0))
+        model = Torus(ring_radius=9, section_radius=4, ring_slice_deg=180, section_slice_deg=90).create()
+        building.build(model)
+        self.attach(building)
+
+        # hollow cylinder
+        building = Building('area4_cy1', Point3(33, -49, 0), Vec3(82, 0, 0))
+        hz = 0
+
+        li = [
+            dict(radius=22, height=2, segs_bottom_cap=11, segs_top_cap=11),
+            dict(radius=20, height=2, segs_bottom_cap=10, segs_top_cap=10),
+            dict(radius=18, height=2, segs_bottom_cap=9, segs_top_cap=9),
+            dict(radius=16, inner_radius=14, height=15)
+        ]
+
+        for i, d in enumerate(li):
+            args = dict(**d, ring_slice_deg=180)
+            model = Cylinder(**args).create()
+            z = hz if i == len(li) - 1 else 2 * i
+
+            building.assemble(model, Point3(0, -2 * i, z), Vec3(0, 0, 0))
+            hz += args['height']
+
+        self.attach(building)
+
+        # multi layer elliptical prism
+        # building = Building('area7_ep0', Point3(-86, -53, 0), Vec3(18, 0, 0))
+
+        # for i in range(5):
+        #     model = EllipticalPrism(
+        #         major_axis=10, minor_axis=5, height=6, segs_a=2, segs_bottom_cap=5, segs_top_cap=5
+        #     ).create()
+        #     building.assemble(model, Point3(-2 * i, 0, 6 * i), Vec3(20 * i, 0, 0))
+
+        # self.attach(building)
+
+        # # half torus
+        # building = Building('area4_tr0', Point3(48, -9, 3.5), Vec3(-104, 0, 0))
+        # model = Torus(ring_radius=6, section_radius=3, section_slice_deg=90).create()
+        # building.build(model)
+        # self.attach(building)
+
+
+        # # half torus
+        # building = Building('area4_tr0', Point3(47, -11, 0), Vec3(0, 0, 0))
+        # model = Cylinder(radius=8, height=2).create()
+        # building.assemble(model, Point3(0, 0, 0), Vec3(18, 0, 0))
+
+        # model = Cylinder(radius=6, inner_radius=4, height=10).create()
+        # building.assemble(model, Point3(0, 0, 2), Vec3(18, 0, 0))
+
+
+
+        # multi layer corner rounded boxes, different angle
+        building = Building('area7_rb1', Point3(55, -6, 2.5), Vec3(-28, 0, 0))
+        z, h = 0, 5
+
+        for i in range(7):
+            model = RoundedCornerBox(width=20, depth=20, height=5, corner_radius=5).create()
+            angle = 0 if i % 2 == 0 else 45
+            building.assemble(model, Point3(0, 0, z), Vec3(angle, 0, 0))
+            z += h
+
+        self.attach(building)
+
+        # one corner rounded box, 2 stacked
+        building = Building('area7_rb0', Point3(83, -16, 5), Vec3(166, 0, 0))
+        start_w, diff = 30, 10
+        z = 0
+
+        for i in range(2):
+            h = 15 if i == 0 else 5
+            x = -(diff / 2) * i
+            # z = 0 if i == 0 else 12.5 + h * (i - 1)
+            z += 0 if i == 0 else h / 2
+            w = start_w - diff * i
+
+            model = RoundedCornerBox(
+                width=w, depth=20 - i * 5, height=h, corner_radius=8,
+                rounded_b_left=False, rounded_b_right=False, rounded_f_left=False
+            ).create()
+            building.assemble(model, Point3(x, 0, z), Vec3(0, 0, 0))
+            z += h / 2
+
+        self.attach(building)
+
+      
+
+
+       
+
+
+
+
+        # building = Building('area7_cy0', Point3(-9.6, -59, 0), Vec3(0, 0, 0))
+
+        # model = Cylinder(radius=6, height=30, segs_a=5, ring_slice_deg=270).create()
+        # building.assemble(model, Point3(0, 0, 0), Vec3(90, 0, 0))
+
+        # model = Cylinder(radius=6, height=40, segs_a=5, ring_slice_deg=270).create()
+        # building.assemble(model, Point3(0, 0, 0), Vec3(180, 0, 0))
+
+        # model = Cylinder(radius=6, height=30, segs_a=5, ring_slice_deg=270).create()
+        # building.assemble(model, Point3(0, 0, 0), Vec3(270, 0, 0))
+
+        # self.attach(building)
+
+
 
 
 # class Area
@@ -670,7 +841,13 @@ class AreaTree(City):
             (-58, -71, 0),
             (-54, -61, 0),
             (-37, -100, 0),
-            (-43, -94, 0)
+            (-43, -94, 0),
+
+            # Area7
+            (-25, -2.5, 0),
+            (-37, -2.9, 0),
+            (20, -39, 0),
+            (21, -29, 0)
 
         ]
 
