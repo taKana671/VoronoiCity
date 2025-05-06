@@ -210,6 +210,20 @@ class City:
         if attach:
             self.attach(building)
 
+    def stack_alternating_boxes_shift_y(self, building, n, maker_1, maker_2, attach=True):
+        diff = (maker_1.depth - maker_2.depth) * 0.5
+        z = 0
+
+        for i in range(n):
+            maker = maker_1 if i % 2 == 0 else maker_2
+            z += 0 if i == 0 else maker.height / 2
+            y = 0 if i % 2 == 0 else diff
+            model = maker.create()
+            building.assemble(model, Point3(0, y, z), Vec3(0, 0, 0))
+            z += maker.height / 2
+
+        self.attach(building)
+
 
 class Area1(City):
 
@@ -222,6 +236,7 @@ class Area1(City):
         self.stack_alternating_prisms(building, 15, maker_1, maker_2)
 
         # ##### area1-4 #####
+
         building = Building('area14_0', Point3(-121, 85, 3), Vec3(90, 0, 0))
         args = dict(corner_radius=4, rounded_f_left=False, rounded_f_right=False)
         maker_1 = RoundedCornerBox(width=30, depth=10, height=6, corner_radius=4, segs_w=15, segs_d=5, segs_z=3)
@@ -229,7 +244,8 @@ class Area1(City):
         self.stack_alternating_prisms(building, 7, maker_1, maker_2)
 
         # ##### area1-5 #####
-        building = Building('area55_0', Point3(-112, 42, 3), Vec3(66, 0, 0))
+
+        building = Building('area15_0', Point3(-112, 42, 3), Vec3(66, 0, 0))
 
         maker_1 = RoundedCornerBox(width=40, depth=17, height=6, segs_w=20, segs_d=5, segs_z=10, corner_radius=4)
         maker_2 = RoundedCornerBox(width=38, depth=15, height=0.5, segs_w=20, segs_d=5, segs_z=1, corner_radius=4)
@@ -239,23 +255,24 @@ class Area1(City):
         building.assemble(model, Point3(0, 0, 18), Vec3(90, 0, 90))
         self.attach(building)
 
-
         # ##### area1-3 #####
 
-        building = Building('area1_cy1', Point3(-54, 108, 0), Vec3(0, 0, 0))
-        args = [dict(radius=15, height=20, segs_a=10), dict(radius=10, height=5, segs_a=3)]
-        self.stack_cylinder(building, args)
+        building = Building('area13_0', Point3(-78, 81, 3), Vec3(-28, 0, 0))
+        args = dict(width=40, height=5, segs_w=20, segs_z=2, corner_radius=5)
+        maker_1 = RoundedCornerBox(depth=20, segs_d=10, **args)
+        maker_2 = RoundedCornerBox(depth=15, segs_d=5, **args)
+        self.stack_alternating_boxes_shift_y(building, 4, maker_1, maker_2)
 
-        rb = [
-            # [Point3(-121, 76, 12.5), Vec3(36, 0, 0), dict(width=8, depth=8, height=25, segs_w=4, segs_d=4, segs_z=10, corner_radius=2)],
-            [Point3(-77, 85, 6), Vec3(-32, 0, 0), dict(width=40, depth=20, height=12, segs_w=20, segs_d=10, segs_z=6, corner_radius=2)],
-            [Point3(-77, 116, 10), Vec3(-32, 0, 0), dict(width=10, depth=10, height=20, segs_w=5, segs_d=5, segs_z=10, corner_radius=1)]
-        ]
-        for i, (pos, hpr, args) in enumerate(rb):
-            building = Building(f'area1_rb{i}', pos, hpr)
-            model = RoundedCornerBox(**args).create()
-            building.build(model)
-            self.attach(building)
+        building = Building('area13_1', Point3(-54, 108, 3), Vec3(64, 0, 0))
+        args = dict(width=10, height=6, segs_w=5, segs_z=3)
+        maker_1 = CapsulePrism(depth=30, segs_d=10, **args)
+        maker_2 = CapsulePrism(depth=25, segs_d=5, **args)
+        self.stack_alternating_boxes_shift_y(building, 8, maker_1, maker_2)
+
+        building = Building('area51_0', Point3(-82, 120, 3.5), Vec3(42, 0, 0))
+        model = Torus(ring_radius=8, section_radius=3, ring_slice_deg=180, section_slice_deg=90).create()
+        building.build(model)
+        self.attach(building)
 
 
 class Area2(City):
@@ -736,7 +753,6 @@ class Aera5(City):
 
     def build(self):
         # ##### area5-1 #####
-
         building = Building('area51_0', Point3(4.2, -111, 3.5), Vec3(44, 0, 0))
         model = Torus(ring_radius=9, section_radius=4, ring_slice_deg=180, section_slice_deg=90).create()
         building.build(model)
@@ -811,6 +827,9 @@ class AreaTree(City):
             (-120, 7.6, 0),
             (-125, -3.1, 0),
             (-125, 16, 0),
+            (-76, 102, 0),
+            (-96, 104, 0),
+            (-99, 94, 0),
 
 
             (31, 6, 0),
