@@ -185,14 +185,15 @@ class City:
 
         self.attach(building)
 
-    def stack_alternating_boxes(self, building, n, maker_1, maker_2, attach=True):
-        z = 0
-
+    def stack_alternating_boxes(self, building, n, maker_1, maker_2,
+                                shift_x=0, shift_y=0, z=0, attach=True):
         for i in range(n):
             maker = maker_1 if i % 2 == 0 else maker_2
+            x = 0 if i % 2 == 0 else shift_x
+            y = 0 if i % 2 == 0 else shift_y
             z += 0 if i == 0 else maker.height / 2
             model = maker.create()
-            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
+            building.assemble(model, Point3(x, y, z), Vec3(0, 0, 0))
             z += maker.height / 2
 
         if attach:
@@ -209,20 +210,6 @@ class City:
 
         if attach:
             self.attach(building)
-
-    def stack_alternating_boxes_shift_y(self, building, n, maker_1, maker_2, attach=True):
-        diff = (maker_1.depth - maker_2.depth) * 0.5
-        z = 0
-
-        for i in range(n):
-            maker = maker_1 if i % 2 == 0 else maker_2
-            z += 0 if i == 0 else maker.height / 2
-            y = 0 if i % 2 == 0 else diff
-            model = maker.create()
-            building.assemble(model, Point3(0, y, z), Vec3(0, 0, 0))
-            z += maker.height / 2
-
-        self.attach(building)
 
 
 class Area1(City):
@@ -241,7 +228,7 @@ class Area1(City):
         args = dict(corner_radius=4, rounded_f_left=False, rounded_f_right=False)
         maker_1 = RoundedCornerBox(width=30, depth=10, height=6, corner_radius=4, segs_w=15, segs_d=5, segs_z=3)
         maker_2 = RoundedCornerBox(width=28, depth=8, height=0.5, corner_radius=4, segs_w=14, segs_d=4, segs_z=1)
-        self.stack_alternating_prisms(building, 7, maker_1, maker_2)
+        self.stack_alternating_prisms(building, 11, maker_1, maker_2)
 
         # ##### area1-5 #####
 
@@ -261,13 +248,15 @@ class Area1(City):
         args = dict(width=40, height=5, segs_w=20, segs_z=2, corner_radius=5)
         maker_1 = RoundedCornerBox(depth=20, segs_d=10, **args)
         maker_2 = RoundedCornerBox(depth=15, segs_d=5, **args)
-        self.stack_alternating_boxes_shift_y(building, 4, maker_1, maker_2)
+        shift_y = (maker_1.depth - maker_2.depth) * 0.5
+        self.stack_alternating_boxes(building, 4, maker_1, maker_2, shift_y=shift_y)
 
         building = Building('area13_1', Point3(-54, 108, 3), Vec3(64, 0, 0))
         args = dict(width=10, height=6, segs_w=5, segs_z=3)
         maker_1 = CapsulePrism(depth=30, segs_d=10, **args)
         maker_2 = CapsulePrism(depth=25, segs_d=5, **args)
-        self.stack_alternating_boxes_shift_y(building, 8, maker_1, maker_2)
+        shift_y = (maker_1.depth - maker_2.depth) * 0.5
+        self.stack_alternating_boxes(building, 8, maker_1, maker_2, shift_y=shift_y)
 
         building = Building('area51_0', Point3(-82, 120, 3.5), Vec3(42, 0, 0))
         model = Torus(ring_radius=8, section_radius=3, ring_slice_deg=180, section_slice_deg=90).create()
