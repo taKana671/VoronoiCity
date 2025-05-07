@@ -185,19 +185,60 @@ class City:
 
         self.attach(building)
 
-    def stack_alternating_boxes(self, building, n, maker_1, maker_2,
-                                shift_x=0, shift_y=0, z=0, attach=True):
+    # def stack_alternating_boxes(self, building, n, maker_1, maker_2,
+    #                             shift_x=0, shift_y=0, z=0, attach=True):
+    #     for i in range(n):
+    #         maker = maker_1 if i % 2 == 0 else maker_2
+    #         x = 0 if i % 2 == 0 else shift_x
+    #         y = 0 if i % 2 == 0 else shift_y
+    #         z += 0 if i == 0 else maker.height / 2
+    #         model = maker.create()
+    #         building.assemble(model, Point3(x, y, z), Vec3(0, 0, 0))
+    #         z += maker.height / 2
+
+    #     if attach:
+    #         self.attach(building)
+
+    def stack_alternating_boxes(self, building, n, maker_1, maker_2, start_x=0, start_y=0,
+                                start_z=0, shift_x=0, shift_y=0, attach=True):
+        z = 0
+
         for i in range(n):
             maker = maker_1 if i % 2 == 0 else maker_2
-            x = 0 if i % 2 == 0 else shift_x
-            y = 0 if i % 2 == 0 else shift_y
-            z += 0 if i == 0 else maker.height / 2
+
+            if shift_x != 0:
+                x = start_x if i % 2 == 0 else shift_x
+            else:
+                x = start_x
+
+            if shift_y != 0:
+                y = start_y if i % 2 == 0 else shift_y
+            else:
+                y = start_y
+
+            z += start_z if i == 0 else maker.height / 2
             model = maker.create()
             building.assemble(model, Point3(x, y, z), Vec3(0, 0, 0))
             z += maker.height / 2
 
         if attach:
             self.attach(building)
+
+    # def stack_shifting_boxes(self, building, n, maker_1, maker_2, start_x=0, start_y=0,
+    #                          start_z=0, shift_x=0, shift_y=0, attach=True):
+    #     z = 0
+
+    #     for i in range(n):
+    #         maker = maker_1 if i % 2 == 0 else maker_2
+    #         x = start_x if i % 2 == 0 else shift_x
+    #         y = start_y if i % 2 == 0 else shift_y
+    #         z += 0 if i == 0 else maker.height / 2
+    #         model = maker.create()
+    #         building.assemble(model, Point3(x, y, z), Vec3(0, 0, 0))
+    #         z += maker.height / 2
+
+    #     if attach:
+    #         self.attach(building)
 
     def stack_alternating_prisms(self, building, n, maker_1, maker_2, attach=True):
         z = 0
@@ -244,7 +285,7 @@ class Area1(City):
 
         # ##### area1-3 #####
 
-        building = Building('area13_0', Point3(-78, 81, 3), Vec3(-28, 0, 0))
+        building = Building('area13_0', Point3(-78, 81, 2.5), Vec3(-28, 0, 0))
         args = dict(width=40, height=5, segs_w=20, segs_z=2, corner_radius=5)
         maker_1 = RoundedCornerBox(depth=20, segs_d=10, **args)
         maker_2 = RoundedCornerBox(depth=15, segs_d=5, **args)
@@ -258,7 +299,7 @@ class Area1(City):
         shift_y = (maker_1.depth - maker_2.depth) * 0.5
         self.stack_alternating_boxes(building, 8, maker_1, maker_2, shift_y=shift_y)
 
-        building = Building('area51_0', Point3(-82, 120, 3.5), Vec3(42, 0, 0))
+        building = Building('area51_0', Point3(-82, 120, 1.5), Vec3(42, 0, 0))
         model = Torus(ring_radius=8, section_radius=3, ring_slice_deg=180, section_slice_deg=90).create()
         building.build(model)
         self.attach(building)
@@ -267,6 +308,47 @@ class Area1(City):
 class Area2(City):
 
     def build(self):
+        # ##### area2-1 #####
+
+        # double layer rounded corner boxes with different width, offset center
+        # building = Building('area2_rb2', Point3(-18, 74, 6), Vec3(10, 0, 0))
+        # rb = [
+        #     [0, 0, dict(width=40, depth=20, height=12, segs_w=20, segs_d=10, segs_z=6, corner_radius=2)],
+        #     [11, 5, dict(width=20, depth=15, height=10, segs_w=15, segs_d=5, segs_z=3, corner_radius=2)],
+        # ]
+        # for z, x, args in rb:
+        #     model = RoundedCornerBox(**args).create()
+        #     building.assemble(model, Point3(x, 0, z), Vec3(0, 0, 0))
+
+        # self.attach(building)
+
+
+        # double layer capsule prism
+        # building = Building('area2_cp0', Point3(2, 102, 15), Vec3(-52, 0, 0))
+        # args = [
+        #     dict(width=20, depth=20, height=30, segs_w=10, segs_d=10, segs_z=15),
+        #     dict(width=18, depth=18, height=2.5, segs_w=9, segs_d=9, segs_z=2),
+        # ]
+        # self.stack_capsule_prizm(building, args)
+
+        # ##### area2-2 #####
+
+        building = Building('area22_0', Point3(57, 69, 2.5), Vec3(-42, 0, 0))
+        args = dict(corner_radius=10, rounded_f_left=False)
+
+        maker_1 = RoundedCornerBox(width=40, depth=42, height=5, segs_w=20, segs_d=21, **args)
+        maker_2 = RoundedCornerBox(width=38, depth=40, height=0.5, segs_w=18, segs_d=20, **args)
+        self.stack_alternating_boxes(building, 3, maker_1, maker_2)
+
+        maker_1 = RoundedCornerBox(width=30, depth=32, height=5, segs_w=15, segs_d=10, **args)
+        maker_2 = RoundedCornerBox(width=28, depth=30, height=0.5, segs_w=14, segs_d=15, **args)
+        self.stack_alternating_boxes(building, 3, maker_1, maker_2, start_z=11, start_x=-5, start_y=5)
+
+
+
+
+
+
         # sphere dome
         building = Building('area2_sp0', Point3(13, 6, 0), Vec3(164, 0, 0))
         model = Sphere(radius=14, inner_radius=12, slice_deg=170, bottom_clip=0).create()
@@ -288,7 +370,7 @@ class Area2(City):
 
         # tall cylinder
         cy = [
-            [Point3(-22, 97, 0), dict(radius=6, height=50, segs_a=10)],
+            # [Point3(-22, 97, 0), dict(radius=6, height=50, segs_a=10)],
             [Point3(5, 48, 0), dict(radius=5, height=30, segs_a=15)]
         ]
         for i, (pos, args) in enumerate(cy):
@@ -316,39 +398,7 @@ class Area2(City):
         ]
         self.stack_box(building, args)
 
-        # double layer rounded corner boxes with different width, offset center
-        building = Building('area2_rb2', Point3(-18, 74, 6), Vec3(10, 0, 0))
-        rb = [
-            [0, 0, dict(width=40, depth=20, height=12, segs_w=20, segs_d=10, segs_z=6, corner_radius=2)],
-            [11, 5, dict(width=20, depth=15, height=10, segs_w=15, segs_d=5, segs_z=3, corner_radius=2)],
-        ]
-        for z, x, args in rb:
-            model = RoundedCornerBox(**args).create()
-            building.assemble(model, Point3(x, 0, z), Vec3(0, 0, 0))
-
-        self.attach(building)
-
-        # double layer capsule prism
-        building = Building('area2_cp0', Point3(2, 102, 15), Vec3(-52, 0, 0))
-        args = [
-            dict(width=20, depth=20, height=30, segs_w=10, segs_d=10, segs_z=15),
-            dict(width=18, depth=18, height=2.5, segs_w=9, segs_d=9, segs_z=2),
-        ]
-        self.stack_capsule_prizm(building, args)
-
-        building = Building('area2_cp1', Point3(71, 66, 7.5), Vec3(48, 0, 0))
-        args = [
-            dict(width=20, depth=15, height=15, segs_w=10, segs_d=5, segs_z=5),
-            dict(width=18, depth=13, height=5, segs_w=9, segs_d=6, segs_z=3),
-        ]
-        self.stack_capsule_prizm(building, args)
-
-        building = Building('area2_cp2', Point3(58, 77, 7.5), Vec3(48, 0, 0))
-        args = [
-            dict(width=25, depth=15, height=20, segs_w=5, segs_d=3, segs_z=10),
-            dict(width=23, depth=13, height=5, segs_w=5, segs_d=4, segs_z=3),
-        ]
-        self.stack_capsule_prizm(building, args)
+    
 
         # double layer elliptical prism, different rotation angle
         building = Building('area1_ep0', Point3(-14, 22, 0), Vec3(224, 0, 0))
@@ -369,58 +419,30 @@ class Area2(City):
         ]
         self.stack_elliptical_prism(building, args)
 
-        # capsule prism
-        cp = [
-            [Point3(37, 81, 2.5), Vec3(140, 0, 90), dict(width=5, depth=10, height=15, segs_w=2, segs_d=5, segs_z=5, rounded_right=False)],
-            [Point3(46, 92, 2.5), Vec3(140, 0, 90), dict(width=5, depth=10, height=10, segs_w=2, segs_d=5, segs_z=5, rounded_right=False)]
-        ]
-        for i, (pos, hpr, args) in enumerate(cp):
-            building = Building(f'area1_cp{input}', pos, hpr)
-            model = CapsulePrism(**args).create()
-            building.build(model)
-            self.attach(building)
+       
 
 
 class Aera3(City):
 
     def build(self):
-        # double layer rounded corner boxes, same center
-        building = Building('area3_rb0', Point3(41, 120, 18), Vec3(0, 0, 0))
-        args = [
-            dict(width=35, depth=12, height=36, segs_w=10, segs_d=5, segs_z=15, corner_radius=3),
-            dict(width=30, depth=7, height=4, segs_w=5, segs_d=5, segs_z=2, corner_radius=3)
-        ]
-        self.stack_box(building, args)
+        # ##### area3-1 #####
 
-        building = Building('area3_rb1', Point3(112, 19, 7.5), Vec3(-30, 0, 0))
-        args = [
-            dict(width=20, depth=15, height=15, segs_w=10, segs_d=5, segs_z=5, corner_radius=2),
-            dict(width=15, depth=10, height=3, segs_w=5, segs_d=5, segs_z=2, corner_radius=2)
-        ]
-        self.stack_box(building, args)
+        building = Building('area31_0', Point3(41, 116, 0), Vec3(0, 0, 0))
+        maker_1 = EllipticalPrism(major_axis=20, minor_axis=11, height=5, segs_a=5)
+        maker_2 = EllipticalPrism(major_axis=18, minor_axis=9, height=0.5, segs_a=5)
+        self.stack_alternating_prisms(building, 15, maker_1, maker_2)
 
-        # rounded corner boxe having cylinder on the top
-        building = Building('area3_rb2', Point3(110, 103, 25), Vec3(0, 0, 0))
-        model_1 = RoundedCornerBox(
-            width=30, depth=30, height=50, segs_w=15, segs_d=15, segs_z=25, corner_radius=2).create()
-        model_2 = Cylinder(radius=12, height=5, segs_a=2).create()
+        # ##### area3-2 #####
 
-        for i, model in enumerate([model_1, model_2]):
-            building.assemble(model, Point3(0, 0, i * 25), Vec3(0, 0, 0))
+        building = Building('area32_0', Point3(104, 103, 2.5), Vec3(0, 0, 0))
+        args = dict(height=5, segs_z=2, corner_radius=5)
+        maker_1 = RoundedCornerBox(**args, width=30, depth=30, segs_w=15, segs_d=10)
+        maker_2 = RoundedCornerBox(**args, width=20, depth=20, segs_w=10, segs_d=10)
+        self.stack_alternating_boxes(building, 13, maker_1, maker_2)
 
-        self.attach(building)
+        # ##### area3-3 #####
 
-        # triple layer cylinders
-        building = Building('area3_cy0', Point3(85, 110, 0), Vec3(0, 0, 0))
-        args = [
-            dict(radius=8, height=15, segs_a=4),
-            dict(radius=6, height=20, segs_a=10),
-            dict(radius=4, height=10, segs_a=5)
-        ]
-        self.stack_cylinder(building, args)
-
-        # one quarter capsule
-        building = Building('area3_cp0', Point3(96, 44, 1), Vec3(46, 0, 0))
+        building = Building('area33_0', Point3(96, 44, 1), Vec3(46, 0, 0))
         li = [
             [Point3(0, 0, 0), Vec3(0, 0, 0), CapsulePrism(width=30, depth=30, height=2, segs_w=15, segs_d=15, segs_z=2)],
             [Point3(0, 0, 2), Vec3(0, 0, 0), CapsulePrism(width=25, depth=25, height=2, segs_w=5, segs_d=5, segs_z=2)],
@@ -433,20 +455,29 @@ class Aera3(City):
 
         self.attach(building)
 
+        building = Building('area33_1', Point3(113, 16, 1.5), Vec3(0, 0, 0))
+        model = Torus(ring_radius=9, section_radius=4, section_slice_deg=90).create()
+        building.build(model)
+        self.attach(building)
+
 
 class Area4(City):
 
     def build(self):
-        # double layer rounded corner boxes, same center
-        building = Building('area4_rb1', Point3(-119, -66, 7.5), Vec3(92, 0, 0))
-        args = [
-            dict(width=50, depth=10, height=15, segs_w=15, segs_d=5, segs_z=5, corner_radius=2),
-            dict(width=48, depth=8, height=3, segs_w=14, segs_d=6, segs_z=2, corner_radius=2)
-        ]
-        self.stack_box(building, args)
+        # ##### area4-1 #####
 
-        # sphere dome
-        building = Building('area4_sp0', Point3(-78, -101, 1), Vec3(0, 0, 0))
+        building = Building('area41_0', Point3(-120, -66, 2.5), Vec3(90, 0, 0))
+        args = dict(rounded_f_left=False, rounded_f_right=False)
+        model = RoundedCornerBox(width=50, depth=15, height=5, corner_radius=5, **args).create()
+        building.assemble(model, Point3(0, 0, 0), Vec3(0, 0, 0))
+
+        args = dict(**args, corner_radius=3)
+        maker_1 = RoundedCornerBox(width=50, depth=10, height=5, segs_w=25, segs_d=5, **args)
+        maker_2 = RoundedCornerBox(width=48, depth=8, height=0.5, segs_w=24, segs_d=4, segs_z=1, **args)
+        self.stack_alternating_boxes(building, 12, maker_1, maker_2, start_z=5, start_y=2)
+
+        # ##### area4-2 #####
+        building = Building('area42_0', Point3(-78, -101, 0), Vec3(0, 0, 0))
         li = [
             [Point3(0, 0, 0), Cylinder(radius=22, height=2, segs_bottom_cap=11, segs_top_cap=11)],
             [Point3(0, 0, 2), Cylinder(radius=20, height=2, segs_bottom_cap=10, segs_top_cap=10)],
@@ -460,19 +491,10 @@ class Area4(City):
 
         self.attach(building)
 
-        # two rounded corner boxes
-        li = [
-            [Point3(-55, -121, 15), Vec3(-86, 0, 0), 30],
-            [Point3(-48, -112, 7.5), Vec3(-86, 0, 0), 15]
-        ]
-
-        for i, (pos, hpr, h) in enumerate(li):
-            building = Building(f'area4_rb2_{i}', pos, hpr)
-            model = RoundedCornerBox(
-                width=10, depth=10, height=h, corner_radius=5, rounded_b_left=False, rounded_f_right=False
-            ).create()
-            building.build(model)
-            self.attach(building)
+        building = Building('area42_1', Point3(-50, -118, 1.5), Vec3(0, 0, 0))
+        model = Torus(ring_radius=6, section_radius=3, section_slice_deg=90).create()
+        building.build(model)
+        self.attach(building)
 
 
 class Area6(City):
@@ -742,14 +764,18 @@ class Aera5(City):
 
     def build(self):
         # ##### area5-1 #####
-        building = Building('area51_0', Point3(4.2, -111, 3.5), Vec3(44, 0, 0))
-        model = Torus(ring_radius=9, section_radius=4, ring_slice_deg=180, section_slice_deg=90).create()
-        building.build(model)
-        self.attach(building)
+
+        building = Building('area51_0', Point3(10, -116, 0), Vec3(44, 0, 0))
+        model = Cylinder(radius=10, height=5, segs_bottom_cap=5, segs_top_cap=5).create()
+        building.assemble(model, Point3(0, 0, 0), Vec3(0, 0, 0))
+
+        args = dict(radius=10, ring_slice_deg=180, segs_bottom_cap=4, segs_top_cap=4)
+        maker_1 = Cylinder(height=5, **args)
+        maker_2 = Cylinder(height=0.5, segs_a=1, **args)
+        self.stack_alternating_boxes(building, 14, maker_1, maker_2, start_z=5)
 
         # ##### area5-2 #####
 
-        # parking
         building = Building('area52_0', Point3(44, -88, 0), Vec3(0, 0, 0))
         args = dict(slice_deg=180, bottom_clip=0, top_clip=0.5)
         li = [
@@ -820,15 +846,11 @@ class AreaTree(City):
             (-96, 104, 0),
             (-99, 94, 0),
 
-
-            (31, 6, 0),
-            (-44, 66, 0),
-            (14, 77, 0),
-            (-0.2, 36, 0),
-            (42, 31, 0),
-            (46, 54, 0),
-            (55, 49, 0),
-
+            # Area2
+            (36, 93, 0),
+            (46, 97, 0),
+            (31, 86, 0),
+            (30, 79, 0),
 
             # Area3
             (20, 114, 0),
@@ -837,6 +859,12 @@ class AreaTree(City):
             (124, 34, 0),
             (122, 43, 0),
             (93, 13, 0),
+
+            (123, 81, 0),
+            (110, 79, 0),
+            (79, 124, 0),
+            (74, 111, 0),
+            (78, 99, 0),
 
             # Area4
             (-17, -126, 0),
@@ -850,7 +878,10 @@ class AreaTree(City):
             (-104, -101, 0),
             (-109, -109, 0),
             (-104, -115, 0),
-            (-44, -123, 0),
+            (-62, -122, 0),
+            (-49, -103, 0),
+            (27, -117, 0),
+            (30, -123, 0),
 
             # Area6
             (-78, 49, 0),
@@ -879,9 +910,9 @@ class AreaTree(City):
             (49, -71, 0),
 
             # Area5
-            (23, -114, 0),
-            (28, -121, 0),
-            (15, -123, 0),
+            # (23, -114, 0),
+            # (28, -121, 0),
+            # (15, -123, 0),
             (106, -50, 0),
             (106, -58, 0),
             (115, -14, 0),
