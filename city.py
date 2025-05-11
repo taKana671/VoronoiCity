@@ -78,12 +78,12 @@ class PineTree(NodePath):
     def __init__(self, model, name, scale=1.5):
         super().__init__(BulletRigidBodyNode(f'tree_{name}'))
         tree = model.copy_to(self)
-        tree.set_transform(TransformState.make_pos(Vec3(-0.25, -0.15, 0)))
+        tree.set_transform(TransformState.make_pos(Vec3(0, 0, -4)))
         tree.reparent_to(self)
 
         end, tip = tree.get_tight_bounds()
         height = (tip - end).z
-        shape = BulletCylinderShape(0.3, height, ZUp)
+        shape = BulletCylinderShape(0.5, height, ZUp)
         self.node().add_shape(shape)
         self.set_collide_mask(BitMask32.bit(1))
         self.set_scale(scale)
@@ -104,51 +104,14 @@ class City:
         model.reparent_to(base.scene.city_root)
         base.world.attach(model.node())
 
-    def stack_cylinder(self, building, args_li):
-        z = 0
+    def plant_trees(self, *pos_xy):
+        model = base.loader.load_model('models/pinetree/tree2.bam')
+        area = self.__class__.__name__.lower()
 
-        for args in args_li:
-            model = Cylinder(**args).create()
-            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
-            z += args['height']
-
-        self.attach(building)
-
-    def stack_elliptical_prism(self, building, args_li):
-        z = 0
-
-        for args in args_li:
-            model = EllipticalPrism(**args).create()
-            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
-            z += args['height']
-
-        self.attach(building)
-
-    def stack_box(self, building, args_li):
-        z = 0
-
-        for i, args in enumerate(args_li):
-            if i > 0:
-                before_args = args_li[i - 1]
-                z += (before_args['height'] + args['height']) / 2
-
-            model = RoundedCornerBox(**args).create()
-            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
-
-        self.attach(building)
-
-    def stack_capsule_prizm(self, building, args_li):
-        z = 0
-
-        for i, args in enumerate(args_li):
-            if i > 0:
-                before_args = args_li[i - 1]
-                z += (before_args['height'] + args['height']) / 2
-
-            model = CapsulePrism(**args).create()
-            building.assemble(model, Point3(0, 0, z), Vec3(0, 0, 0))
-
-        self.attach(building)
+        for i, (x, y) in enumerate(pos_xy):
+            tree = PineTree(model, f'{area}_{i}')
+            tree.set_pos(Point3(x, y, 6))
+            self.attach(tree)
 
     def assemble(self, building, makers, attach=True):
         for pos, hpr, maker in makers:
@@ -323,10 +286,12 @@ class Area1(City):
         shift_y = (maker_1.depth - maker_2.depth) * 0.5
         self.stack_alternating_box_center(building, 8, maker_1, maker_2, dir_y=1, shift_y=shift_y)
 
-        building = Building('area13_2', Point3(-82, 120, 1.5), Vec3(42, 0, 0))
-        model = Torus(ring_radius=8, section_radius=3, ring_slice_deg=180, section_slice_deg=90).create()
-        building.build(model)
-        self.attach(building)
+        # ##### trees #####
+
+        self.plant_trees(
+            (-126, 121), (-124, 125), (-115, 13), (-119, 5), (-124, -3),
+            (-82, 118), (-88, 111), (-95, 104), (-100, 97), (-76, 124)
+        )
 
 
 class Area2(City):
@@ -400,6 +365,14 @@ class Area2(City):
         maker_2 = RoundedCornerBox(width=34, depth=20, height=0.5, segs_w=14, segs_d=15, **args)
         self.stack_alternating_boxes(building, 3, maker_1, maker_2, start_z=10.5)
 
+        # ##### trees #####
+
+        self.plant_trees(
+            (36, 93), (46, 97), (31, 86), (30, 79), (-6.6, 27),
+            (-2, 33), (-45, 73), (-49, 65), (-31, 58), (-41, 56),
+            (-49, 57)
+        )
+
 
 class Area3(City):
 
@@ -439,6 +412,15 @@ class Area3(City):
         maker = RoundedCornerBox(width=10, depth=10, height=5, corner_radius=2)
         self.stack_rotating_boxes(building, maker, 6, [0, 45])
 
+        # ##### trees #####
+
+        self.plant_trees(
+            (20, 114), (17, 121), (116, 1.5), (106, 1.4), (98, 4.7),
+            (88, 92), (112, 2.5), (115, -13), (118, -9.9), (124, -6.5),
+            (122, 2.4), (123, 81), (110, 79), (79, 124), (74, 111),
+            (78, 99)
+        )
+
 
 class Area4(City):
 
@@ -474,6 +456,14 @@ class Area4(City):
         model = Torus(ring_radius=6, section_radius=3, section_slice_deg=90).create()
         building.build(model)
         self.attach(building)
+
+        # ##### trees #####
+
+        self.plant_trees(
+            (-17, -126), (-24, -126), (-120, -125), (-113, -125), (-116, -96),
+            (-126, -101), (-118, -36), (-122, -32), (-110, -111), (-110, -102),
+            (-106, -95), (-100, -89), (27, -117),(30, -123)
+        )
 
 
 class Area6(City):
@@ -530,6 +520,14 @@ class Area6(City):
         maker_1 = CapsulePrism(width=10, depth=15, segs_w=5, segs_d=5, **args_1)
         maker_2 = CapsulePrism(width=8, depth=12, segs_w=4, segs_d=6, **args_2)
         self.stack_alternating_boxes(building, 5, maker_1, maker_2, h=-90, x=-20, y=-12.5)
+
+        # ##### trees #####
+
+        self.plant_trees(
+            (-116, -18), (-118, -11), (-95, -69), (-101, -60), (-84, -69),
+            (-75, -66), (-57, -16), (-68, -16), (-51, -24), (-49, -87),
+            (-43, -95), (-9, -103), (-4, -99)
+        )
 
 
 class Area7(City):
@@ -590,6 +588,14 @@ class Area7(City):
         maker_1 = RoundedCornerBox(width=18, depth=20, height=0.5, segs_w=9, segs_d=10, segs_z=1, **args)
         maker_2 = RoundedCornerBox(width=20, depth=22, height=5, segs_w=10, segs_d=11, **args)
         self.stack_alternating_boxes(building, 2, maker_1, maker_2, start_z=8)
+
+        # ##### trees #####
+
+        self.plant_trees(
+            (-40, -26), (-36, -34), (-18, -50), (-11, -55), (51, 9),
+            (56, 12), (63, 13), (71, 10), (51, -29), (60, -31),
+            (67, -34), (74, -36), (47, -74), (54, -74), (64, -74),
+        )
 
 
 class Area5(City):
@@ -654,122 +660,9 @@ class Area5(City):
         building.assemble(model, Point3(0, 0, 25), Vec3(90, 0, 90))
         self.attach(building)
 
+        # ##### trees #####
 
-class AreaTree(City):
-
-    def __init__(self):
-        self.model = base.loader.load_model('models/pinetree/tree2.bam')
-
-    def build(self):
-        tree_pos = [
-            # Area1
-            (-92, 125, 0),
-            (-126, 121, 0),
-            (-124, 125, 0),
-            (-118, 15, 0),
-            (-120, 7.6, 0),
-            (-125, -3.1, 0),
-            (-125, 16, 0),
-            (-76, 102, 0),
-            (-96, 104, 0),
-            (-99, 94, 0),
-
-            # Area2
-            (36, 93, 0),
-            (46, 97, 0),
-            (31, 86, 0),
-            (30, 79, 0),
-            (-47, 60, 0),
-            (-34, 59, 0),
-            (-45, 74, 0),
-            (-26, 104, 0),
-            (-6.6, 27, 0),
-            (-2, 33, 0),
-            (14, 53, 0),
-            # (-116, -18, 0),
-            # (-118, -11, 0),
-            # (-105, -20, 0),
-
-            # Area3
-            (20, 114, 0),
-            (17, 121, 0),
-            (114, 33, 0),
-            (124, 34, 0),
-            (122, 43, 0),
-            (93, 13, 0),
-
-            (123, 81, 0),
-            (110, 79, 0),
-            (79, 124, 0),
-            (74, 111, 0),
-            (78, 99, 0),
-
-            # Area4
-            (-17, -126, 0),
-            (-24, -126, 0),
-            (-120, -125, 0),
-            (-113, -125, 0),
-            (-116, -96, 0),
-            (-126, -101, 0),
-            (-118, -36, 0),
-            (-122, -32, 0),
-            (-104, -101, 0),
-            (-109, -109, 0),
-            (-104, -115, 0),
-            (-62, -122, 0),
-            (-49, -103, 0),
-            (27, -117, 0),
-            (30, -123, 0),
-
-            # Area6
-            (-116, -18, 0),
-            (-118, -11, 0),
-            (-95, -69, 0),
-            (-101, -60, 0),
-            (-84, -69, 0),
-            (-75, -66, 0),
-            (-57, -16, 0),
-            (-68, -16, 0),
-            (-51, -24, 0),
-            (-49, -87, 0),
-            (-43, -95, 0),
-            (-9, -103, 0),
-            (-4, -99, 0),
-
-            # Area7
-            (-40, -26, 0),  # 7-1
-            (-36, -34, 0),
-            (-18, -50, 0),
-            (-11, -55, 0),
-
-            (51, 9, 0),
-            (56, 12, 0),
-            (63, 13, 0),
-            (71, 10, 0),
-
-            (51, -29, 0),  # 7-2
-            (60, -31, 0),
-            (67, -34, 0),
-            (74, -36, 0),
-            (47, -74, 0),
-            (54, -74, 0),
-            (64, -74, 0),
-
-            (106, -50, 0),
-            (106, -58, 0),
-            (115, -14, 0),
-            (122, -8, 0),
-            (123, -91, 0),
-            (125, -98, 0),
-            (104, -97, 0),
-            (79, -104, 0),
-            (82, -116, 0),
-            (37, -112, 0),
-            (41, -121, 0)
-
-        ]
-
-        for i, pos in enumerate(tree_pos):
-            tree = PineTree(self.model, i)
-            tree.set_pos(pos)
-            self.attach(tree)
+        self.plant_trees(
+            (115, -14), (122, -8), (123, -91), (125, -98), (104, -97),
+            (79, -104), (82, -116), (37, -112), (41, -121)
+        )

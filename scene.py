@@ -8,13 +8,15 @@ from panda3d.core import BitMask32, Vec3, Point3, LColor
 from panda3d.core import Filename, PNMImage
 from panda3d.core import GeoMipTerrain
 from panda3d.core import Shader, TextureStage, TransformState
-from panda3d.core import TransparencyAttrib
+from panda3d.core import TransparencyAttrib, TexGenAttrib
 
 
 from shapes.src import Plane, Cylinder, Box
 from shapes.src import EllipticalPrism, RoundedCornerBox
 from lights import BasicAmbientLight, BasicDayLight
 from city import City
+
+from shapes.src import Sphere
 
 
 class Ground(NodePath):
@@ -24,7 +26,7 @@ class Ground(NodePath):
 
         plane = Plane(w, d, segs_w, segs_d)
         self.model = plane.create()
-        self.model.set_texture(base.loader.load_texture('voronoi_region2.png'))
+        self.model.set_texture(base.loader.load_texture('images/voronoi_region.png'))
         self.model.set_pos(0, 0, 0)
         self.model.reparent_to(self)
         self.set_tag('category', 'ground')
@@ -38,30 +40,26 @@ class Ground(NodePath):
         self.set_collide_mask(BitMask32.bit(1))
 
 
-class Tower(NodePath):
+# class SkyBox(NodePath):
 
-    def __init__(self):
-        super().__init__(BulletRigidBodyNode('tower'))
-        self.set_tag('category', 'object')
-        # self.model = Cylinder(radius=10, height=20).create()
+#     def __init__(self):
+#         super().__init__(PandaNode('skybox'))
+#         self.make_skybox()
 
-        # self.model = EllipticalPrism(major_axis=5, minor_axis=2, height=20).create()
-        self.model = RoundedCornerBox(width=10, depth=10, height=20, corner_radius=2).create()
+#     def make_skybox(self):
+#         self.sphere = Sphere(radius=500).create()
+#         self.sphere.set_pos(0, 0, 0)
+#         self.sphere.reparent_to(self)
 
-        # self.model = Box(20, 20, 20, 50, thickness=5, open_left=True).create()
-        # self.model = RoundedConerBox(20, 20, 20, 50, thickness=5, open_left=True).create()
-        self.set_pos(0, 0, 0)
-        self.set_h(30)
+#         ts = TextureStage.get_default()
+#         self.sphere.set_tex_gen(ts, TexGenAttrib.M_world_cube_map)
+#         self.sphere.set_tex_hpr(ts, (0, 180, 0))
+#         self.sphere.set_tex_scale(ts, (1, -1))
 
-        # self.set_color(LColor(0.98, 0.98, 0.82, 1))
-        self.set_color(LColor(0.38, 0.59, 1.0, 1))
-        self.model.reparent_to(self)
-
-        shape = BulletConvexHullShape()
-        shape.add_geom(self.model.node().get_geom(0))
-        self.node().add_shape(shape)
-        self.node().set_mass(0)
-        self.set_collide_mask(BitMask32.bit(1))
+#         self.sphere.set_light_off()
+#         self.sphere.set_material_off()
+#         imgs = base.loader.load_cube_map('images/skybox_sphere/img_#.png')
+#         self.sphere.set_texture(imgs)
 
 
 class Scene(NodePath):
@@ -81,12 +79,10 @@ class Scene(NodePath):
         self.city_root = NodePath('city')
         self.city_root.reparent_to(self)
 
-        # self.tower = Tower()
-        # # self.tower = RoundedConerBox()
-        # self.tower.reparent_to(self.city_root)
-        # self.tower.set_pos(Point3(0, 0, 0))
-        # base.world.attach(self.tower.node())
-        # self.tower.set_pos(0, 0, 10)
+        # self.sky = SkyBox()
+        # self.sky.reparent_to(self)
+        # self.sky.set_pos(0, 0, 150)
+
 
     def create_city(self):
         for area in City.areas:
