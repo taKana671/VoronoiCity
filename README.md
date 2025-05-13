@@ -1,7 +1,8 @@
 # VoronoiCity
 
-When I was looking at the Voronoi noise with rounded edges, I felt like I could create a city using the white edges as roads. 3D shapes were stacked and rotated to look like buildings and placed within the Voronoi regions. Noise, 3D shapes, and skybox were all created procedurally.
+When I was looking at the Voronoi noise with rounded edges, I felt like I could create a city using the white edges as roads. 3D shapes were stacked and rotated to look like buildings and placed within the Voronoi regions with the image of Tokyo. Noise, 3D shapes, and skybox were all created procedurally.
 See below.   
+   
 https://github.com/taKana671/NoiseTexture   
 https://github.com/taKana671/shapes   
 https://github.com/taKana671/skybox   
