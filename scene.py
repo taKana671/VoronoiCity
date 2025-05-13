@@ -40,26 +40,26 @@ class Ground(NodePath):
         self.set_collide_mask(BitMask32.bit(1))
 
 
-# class SkyBox(NodePath):
+class SkyBox(NodePath):
 
-#     def __init__(self):
-#         super().__init__(PandaNode('skybox'))
-#         self.make_skybox()
+    def __init__(self):
+        super().__init__(PandaNode('skybox'))
+        self.make_skybox()
 
-#     def make_skybox(self):
-#         self.sphere = Sphere(radius=500).create()
-#         self.sphere.set_pos(0, 0, 0)
-#         self.sphere.reparent_to(self)
+    def make_skybox(self):
+        self.sphere = Sphere(radius=500).create()
+        self.sphere.set_pos(0, 0, 0)
+        self.sphere.reparent_to(self)
 
-#         ts = TextureStage.get_default()
-#         self.sphere.set_tex_gen(ts, TexGenAttrib.M_world_cube_map)
-#         self.sphere.set_tex_hpr(ts, (0, 180, 0))
-#         self.sphere.set_tex_scale(ts, (1, -1))
+        ts = TextureStage.get_default()
+        self.sphere.set_tex_gen(ts, TexGenAttrib.M_world_cube_map)
+        self.sphere.set_tex_hpr(ts, (0, 180, 0))
+        self.sphere.set_tex_scale(ts, (1, -1))
 
-#         self.sphere.set_light_off()
-#         self.sphere.set_material_off()
-#         imgs = base.loader.load_cube_map('images/skybox_sphere/img_#.png')
-#         self.sphere.set_texture(imgs)
+        self.sphere.set_light_off()
+        self.sphere.set_material_off()
+        imgs = base.loader.load_cube_map('images/skybox/img_#.png')
+        self.sphere.set_texture(imgs)
 
 
 class Scene(NodePath):
@@ -79,17 +79,11 @@ class Scene(NodePath):
         self.city_root = NodePath('city')
         self.city_root.reparent_to(self)
 
-        # self.sky = SkyBox()
-        # self.sky.reparent_to(self)
-        # self.sky.set_pos(0, 0, 150)
-
+        self.sky = SkyBox()
+        self.sky.reparent_to(self)
+        self.sky.set_pos(0, 0, -100)
 
     def create_city(self):
         for area in City.areas:
-            a = area()
-            a.build()
-
-
-
-
-
+            area_builder = area()
+            area_builder.build()
