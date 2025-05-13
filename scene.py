@@ -1,22 +1,13 @@
-import math
-
 from panda3d.bullet import BulletRigidBodyNode
-from panda3d.bullet import BulletTriangleMeshShape, BulletHeightfieldShape, ZUp
-from panda3d.bullet import BulletConvexHullShape, BulletTriangleMesh, BulletConvexHullShape
+from panda3d.bullet import BulletTriangleMeshShape
+from panda3d.bullet import BulletTriangleMesh
 from panda3d.core import NodePath, PandaNode
-from panda3d.core import BitMask32, Vec3, Point3, LColor
-from panda3d.core import Filename, PNMImage
-from panda3d.core import GeoMipTerrain
-from panda3d.core import Shader, TextureStage, TransformState
-from panda3d.core import TransparencyAttrib, TexGenAttrib
+from panda3d.core import BitMask32, Point3
+from panda3d.core import TexGenAttrib, TextureStage
 
-
-from shapes.src import Plane, Cylinder, Box
-from shapes.src import EllipticalPrism, RoundedCornerBox
-from lights import BasicAmbientLight, BasicDayLight
 from city import City
-
-from shapes.src import Sphere
+from lights import BasicAmbientLight, BasicDayLight
+from shapes.src import Sphere, Plane
 
 
 class Ground(NodePath):
