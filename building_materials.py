@@ -53,8 +53,6 @@ class MaterialCapsule(Capsule):
             height=height,
             segs_c=segs_c,
             segs_a=int(height / 2) if height >= 3 else 1,
-            segs_top_cap=int((radius - inner_radius) / 2),
-            segs_bottom_cap=int((radius - inner_radius) / 2),
             top_hemisphere=top_hemisphere,
             bottom_hemisphere=bottom_hemisphere,
             ring_slice_deg=ring_slice_deg
