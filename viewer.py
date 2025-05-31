@@ -31,11 +31,6 @@ class Viewer(NodePath):
         self.angular_velocity = 100
         self.linear_velocity = 10
 
-    # def setup(self, pos):
-        # self.set_pos(pos)
-        # self.reparent_to(base.render)
-        # base.world.attach(self.node())
-
     def cast_cay(self, from_pos, to_pos):
         if (result := base.world.ray_test_closest(
                 from_pos, to_pos, BitMask32.bit(1))).has_hit():
