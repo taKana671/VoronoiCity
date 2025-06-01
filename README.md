@@ -46,7 +46,7 @@ https://github.com/user-attachments/assets/161ab37a-eeb4-4208-9c7b-bc80149b089c
     </tr>
     <tr>
       <th>t</th>
-      <th align="left">Toggles physical objects display on and off.</th>
+      <th align="left">Toggles physical object display on and off.</th>
     </tr>
     <tr>
       <th>i</th>
@@ -58,7 +58,7 @@ https://github.com/user-attachments/assets/161ab37a-eeb4-4208-9c7b-bc80149b089c
     </tr>
     <tr>
       <th>w</th>
-      <th align="left">Toggles wireframes display on and off.</th>
+      <th align="left">Toggles wireframe display on and off.</th>
     </tr>
     <tr>
       <th>v</th>
