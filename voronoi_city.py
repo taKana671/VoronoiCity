@@ -28,7 +28,7 @@ load_prc_file_data("", """
 
 
 # If set to True, the clicked building can be moved or rotated.
-# See below if statement in __init__.
+# See if statement in __init__.
 UNDER_CONSTRUCTION = False
 
 
@@ -150,7 +150,7 @@ class VoronoiCity(ShowBase):
         self.camLens.set_near_far(0.1, 1000000)
 
     def view_from_sky(self, pos, fov):
-        self.viewer.set_pos_hpr(Point3(0, 0, 0), Vec3(140, 0, -0.9))
+        self.viewer.set_pos_hpr(Point3(0, 0, 0), self.sky_view_root.get_hpr())
         self.camera.set_pos(pos)
         self.camera.look_at(Point3(0, 0, 0))
         self.camLens.set_fov(fov)
