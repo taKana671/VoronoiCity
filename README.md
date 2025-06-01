@@ -31,6 +31,8 @@ git clone --recursive https://github.com/taKana671/VoronoiCity.git
 python voronoi_city.py
 ```
 
+https://github.com/user-attachments/assets/161ab37a-eeb4-4208-9c7b-bc80149b089c
+
 #### Key control
 
 <table>
@@ -48,7 +50,7 @@ python voronoi_city.py
     </tr>
     <tr>
       <th>i</th>
-      <th align="left">After clicking on a building and pressing the [i] key, its position and angle will be displayed on the console.</th>
+      <th align="left">Click on a building and press the [i] key, its position and angle will be displayed on the console.</th>
     </tr>
     <tr>
       <th>r</th>
