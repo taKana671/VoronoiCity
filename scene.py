@@ -7,7 +7,7 @@ from panda3d.core import TexGenAttrib, TextureStage
 
 from city import City
 from lights import BasicAmbientLight, BasicDayLight
-from shapes.src import Sphere, Plane
+from shapes import Sphere, Plane
 
 
 class Ground(NodePath):

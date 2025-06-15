@@ -1,10 +1,10 @@
-from shapes.src import Cylinder
-from shapes.src import EllipticalPrism
-from shapes.src import Capsule
-from shapes.src import CapsulePrism
-from shapes.src import RoundedCornerBox
-from shapes.src import Sphere
-from shapes.src import Torus
+from shapes import Cylinder
+from shapes import EllipticalPrism
+from shapes import Capsule
+from shapes import CapsulePrism
+from shapes import RoundedCornerBox
+from shapes import Sphere
+from shapes import Torus
 
 
 class MaterialCylinder(Cylinder):
