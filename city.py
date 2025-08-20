@@ -385,8 +385,9 @@ class Area3(City):
         # ##### area3-1 #####
 
         building = Building('area31_0', Point3(41, 116, 0), Vec3(0, 0, 0))
-        maker_1 = EllipticalPrism(major_axis=20, minor_axis=11, height=5)
-        maker_2 = EllipticalPrism(major_axis=18, minor_axis=9, height=0.5)
+        maker_1 = EllipticalPrism(major_axis=40, minor_axis=22, height=5)
+        maker_2 = EllipticalPrism(major_axis=36, minor_axis=18, height=0.5)
+
         self.stack_alternating_prisms(building, 15, maker_1, maker_2)
 
         # ##### area3-2 #####
@@ -457,12 +458,12 @@ class Area4(City):
         self.attach(building)
 
         building = Building('area42_1', Point3(-49, -118, 0), Vec3(4, 0, 0))
-        diff = 0.2
+        diff = 0.4
 
         for i in range(12):
             maker = EllipticalPrism(
-                major_axis=10 - i * diff,
-                minor_axis=8 - i * diff,
+                major_axis=20 - i * diff,
+                minor_axis=16 - i * diff,
                 height=5
             )
             building.assemble(maker, Point3(0, 0, 5 * i), Vec3(0, 0, 0))
