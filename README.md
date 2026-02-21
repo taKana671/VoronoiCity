@@ -12,11 +12,11 @@ Mouse drag to rotate the entire city.
 ![Image](https://github.com/user-attachments/assets/f6f41979-a581-4e1f-a866-87b4665e9789)
 
 # Requirements
-* Panda3D 1.10.15
-* numpy 2.2.4
+* Panda3D 1.10.16
+* numpy 2.2.6
   
 # Environment
-* Python 3.12
+* Python 3.13
 * Windows11
 
 # Usage
